@@ -1,6 +1,14 @@
-//
-// Created by colli on 7/14/2025.
-//
+/*
+* File: Component
+* Project: Trajan
+* Author: Collin Longoria
+* Created on: 7/14/2025
+*
+* Copyright (c) 2025 Collin Longoria
+*
+* This software is released under the MIT License.
+* https://opensource.org/licenses/MIT
+*/
 #include <iostream>
 
 
