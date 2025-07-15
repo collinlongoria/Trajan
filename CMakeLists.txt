@@ -1,5 +1,6 @@
 # Init
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.29)
+
 project(Trajan LANGUAGES CXX)
 
 # Establish C++ Standard
@@ -14,3 +15,4 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Build/lib)
 # Subdirectories
 add_subdirectory(external/glfw)
 add_subdirectory(TrajanEngine)
+add_subdirectory(TrajanEditor)

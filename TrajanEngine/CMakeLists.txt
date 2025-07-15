@@ -11,9 +11,21 @@ file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
 # Include path to headers
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# Create executable
-add_executable(TrajanEngine ${ENGINE_SOURCES})
+# Include Vulkan headers
+include_directories(TrajanEngine PRIVATE ${Vulkan_INCLUDE_DIR})
+
+# Create dynamic lib
+add_library(TrajanEngine SHARED ${ENGINE_SOURCES})
+target_compile_definitions(TrajanEngine PRIVATE TRAJANENGINE_EXPORTS)
+
+target_compile_definitions(TrajanEngine PUBLIC
+        VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
+        VULKAN_HPP_NO_STRUCT_CONSTRUCTORS=1
+)
 
 # Link external libraries
-target_link_libraries(TrajanEngine PRIVATE glfw Vulkan::Vulkan)
+target_link_libraries(TrajanEngine PRIVATE glfw)
+
+target_link_libraries(TrajanEngine PUBLIC Vulkan::Vulkan)
+
 target_include_directories(TrajanEngine PRIVATE ${CMAKE_SOURCE_DIR}/external/glfw/include)
