@@ -17,20 +17,24 @@
 
 class VulkanRenderer {
 public:
+    VulkanRenderer() = default;
+    ~VulkanRenderer() = default;
+
     void initVulkan();
 
-    void drawLoop();
+    void shutdownVulkan();
 
 private:
     void createInstance();
+    void pickPhysicalDevice();
 
     std::vector<const char*>  getRequiredExtensions();
-    void setupDebugMessenger();
 
 
     vk::raii::Context context;
     vk::raii::Instance instance = nullptr;
-    vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
+
+    vk::raii::PhysicalDevice physicalDevice = nullptr;
 };
 
 

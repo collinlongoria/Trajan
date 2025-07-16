@@ -21,15 +21,15 @@
 class Logger : public ILogger {
 public:
     Logger();
-    ~Logger();
+    ~Logger() override;
 
-    void Message(const std::string& message = "");
+    void Message(const std::string& message) override;
 
-    void Warn(const std::string& message = "");
+    void Warn(const std::string& message) override;
 
-    void Error(const std::string& message = "");
+    void Error(const std::string& message) override;
 
-    void Assert(bool condition, const std::string& message = "");
+    void Assert(bool condition, const std::string& message) override;
 
     // Delete, copy, and move constructors/assignments
     Logger(const Logger&)            = delete;

@@ -15,13 +15,12 @@
 
 #include <TrajanEngine.hpp>
 
-#define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
 
 class TRAJANENGINE_API Window {
 public:
     Window(uint32_t width, uint32_t height, const std::string& name);
-    ~Window() = default;
+    ~Window();
 
     // Poll and process GLFW events
     void PollEvents();
@@ -31,7 +30,7 @@ public:
 
     // Provides access to underlying GLFWwindow pointer
    [[nodiscard]] GLFWwindow* NativeWindow() const {
-        return mWindow.get();
+        return mWindow;
    }
 
     // Getters for window proeprties
@@ -42,16 +41,14 @@ public:
     // Set key/input callback for the window
     void SetKeyCallback(GLFWkeyfun callback) {
        if(mWindow) {
-           glfwSetKeyCallback(mWindow.get(), callback);
+           glfwSetKeyCallback(mWindow, callback);
        }
    }
 
 private:
     uint32_t mWidth, mHeight;
     std::string mName;
-    std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> mWindow;
-
-    static bool sGLFWInitialized;
+    GLFWwindow* mWindow;
 };
 
 

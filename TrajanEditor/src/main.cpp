@@ -23,5 +23,5 @@ int main(void) {
 
     Trajan::Shutdown();
 
-    return EXIT_SUCCESS;
+    return 0;
 }

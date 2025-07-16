@@ -13,9 +13,22 @@
 #include <vulkan/vk_platform.h>
 
 #include <vector>
+#include <map>
 
 #include "Log.hpp"
+
+#define GLFW_INCLUDE_VULKAN
+#include <iostream>
+
 #include "GLFW/glfw3.h"
+
+// Required Vulkan extensions
+std::vector<const char*> requiredDeviceExtension = {
+    vk::KHRSwapchainExtensionName,
+    vk::KHRSpirv14ExtensionName,
+    vk::KHRSynchronization2ExtensionName,
+    vk::KHRCreateRenderpass2ExtensionName
+};
 
 // Validation layer
 const std::vector validationLayers = {
@@ -29,23 +42,45 @@ const std::vector validationLayers = {
 #endif
 
 // Debug messenger callback function
+
 static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT severity,
     vk::DebugUtilsMessageTypeFlagsEXT type, const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
-    if(severity == vk::DebugUtilsMessageSeverityFlagBitsEXT::eError || severity == vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning) {
+    if(severity == vk::DebugUtilsMessageSeverityFlagBitsEXT::eError) {
         Log::Error("validation layer: type " + to_string(type) + " msg: " + pCallbackData->pMessage);
+    }
+    else if(severity == vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning) {
+        Log::Warn("validation layer: type " + to_string(type) + " msg: " + pCallbackData->pMessage);
     }
 
     return vk::False;
 }
 
+
 void VulkanRenderer::initVulkan() {
+    // Initialize GLFW
+    Log::Message("Initializing GLFW...");
+    if(!glfwInit()) {
+        Log::Error("Failed to initialize GLFW!");
+        return;
+    }
+    // Set GLFW window hints
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // vulkan
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    //glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
+
+    // Initialize Vulkan objects
+
     createInstance();
-    setupDebugMessenger();
+    pickPhysicalDevice();
 }
 
-void VulkanRenderer::drawLoop() {
+void VulkanRenderer::shutdownVulkan() {
+    // destroy vulkan objects
+    instance = nullptr;
 
+    glfwTerminate();
 }
+
 
 // Helper function to get required extensions for Vulkan
 std::vector<const char*> VulkanRenderer::getRequiredExtensions() {
@@ -62,25 +97,25 @@ std::vector<const char*> VulkanRenderer::getRequiredExtensions() {
     return extensions;
 }
 
-// Helper function to setup the debug messenger
-void VulkanRenderer::setupDebugMessenger() {
-    if(!enableValidationLayers) return;
+void VulkanRenderer::createInstance() {
+    // Start by creating the base context
+    // (it was crashing before I did this)
+    Log::Message("Creating Vulkan context...");
+    //context = vk::raii::Context();
 
-    vk::DebugUtilsMessageSeverityFlagsEXT severityFlags( vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-        vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
-    vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags( vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-        vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation );
-
-    vk::DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfoEXT{
-        .messageSeverity = severityFlags,
-        .messageType = messageTypeFlags,
-        .pfnUserCallback = &debugCallback
+    vk::DebugUtilsMessengerCreateInfoEXT dbgCreateInfo{
+        .messageSeverity =
+              vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose
+            | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo
+            | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning
+            | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
+        .messageType =
+              vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral
+            | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
+            | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
+        .pfnUserCallback = debugCallback
     };
 
-    debugMessenger = instance.createDebugUtilsMessengerEXT(debugUtilsMessengerCreateInfoEXT);
-}
-
-void VulkanRenderer::createInstance() {
     /*
      * VkApplicationInfo provides optional metadata about the application
      * which can help drivers optimize or track usage
@@ -99,18 +134,28 @@ void VulkanRenderer::createInstance() {
     }
 
     // Check if the required layers are supported by the Vulkan implementation
-    auto layerProperties = context.enumerateInstanceLayerProperties();
-    if (std::ranges::any_of(requiredLayers, [&layerProperties](auto const& requiredLayer) {
-        return std::ranges::none_of(layerProperties,
-                                   [requiredLayer](auto const& layerProperty)
-                                   { return strcmp(layerProperty.layerName, requiredLayer) == 0; });
-    }))
-    {
-        Log::Assert(false, "One or more required layers are not supported!");
+    auto availableLayers = context.enumerateInstanceLayerProperties();
+    for(const char* layerName : requiredLayers) {
+        bool found = std::ranges::any_of(availableLayers, [&](const auto& prop) {
+            return strcmp(layerName, prop.layerName) == 0;
+        });
+
+        if(!found) {
+            Log::Assert(false, std::string("Requested validation layer not available: ") + layerName);
+        }
     }
 
     // Add required extensions
-    auto extensions = getRequiredExtensions();
+    auto requiredExtensions = getRequiredExtensions();
+
+    // Check if required extensions are supported by Vulkan
+    auto extensionProperties = context.enumerateInstanceExtensionProperties();
+    for(auto const& requiredExtension : requiredExtensions) {
+        if(std::ranges::none_of(extensionProperties, [requiredExtension](auto const& extensionProperty) { return strcmp(extensionProperty.extensionName, requiredExtension) == 0;}))
+        {
+            Log::Assert(false, "Required extension not supported " + std::string(requiredExtension));
+        }
+    }
 
     /*
      * VkInstanceCreateInfo defines parameters for creating a VkInstance,
@@ -118,16 +163,62 @@ void VulkanRenderer::createInstance() {
      * a pointer to VkApplicationInfo
      */
     vk::InstanceCreateInfo createInfo{
-        .pApplicationInfo = &appInfo,
-        .enabledLayerCount = static_cast<uint32_t>(validationLayers.size()),
-        .ppEnabledLayerNames = requiredLayers.data(),
-        .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-        .ppEnabledExtensionNames = extensions.data()
+        .pNext                   = enableValidationLayers ? &dbgCreateInfo : nullptr,
+        .pApplicationInfo        = &appInfo,
+        .enabledLayerCount       = enableValidationLayers ? static_cast<uint32_t>(requiredLayers.size()) : 0,
+        .ppEnabledLayerNames     = enableValidationLayers ? requiredLayers.data() : nullptr,
+        .enabledExtensionCount   = static_cast<uint32_t>(requiredExtensions.size()),
+        .ppEnabledExtensionNames = requiredExtensions.data()
     };
 
+    Log::Message("Creating Vulkan instance...");
     instance = vk::raii::Instance(context, createInfo);
-    Log::Message("Vulkan Instance created");
 }
 
+void VulkanRenderer::pickPhysicalDevice() {
+    // Get list of available physical devices
+    auto devices = vk::raii::PhysicalDevices( instance );
+
+    // Iterate through to find first suitable GPU
+    const auto devIter = std::ranges::find_if( devices,
+
+    [&]( auto const & device ) {
+            // Check if the device supports the Vulkan 1.4 API version
+            bool supportsVulkan1_4 = device.getProperties().apiVersion >= VK_API_VERSION_1_4;
+
+            // Check if any of the queue families support graphics operations
+            auto queueFamilies = device.getQueueFamilyProperties();
+            bool supportsGraphics = std::ranges::any_of( queueFamilies, []( auto const & qfp ) { return !!( qfp.queueFlags & vk::QueueFlagBits::eGraphics ); } );
+
+            // Check if all required device extensions are available
+            auto availableDeviceExtensions = device.enumerateDeviceExtensionProperties();
+            bool supportsAllRequiredExtensions = std::ranges::all_of( requiredDeviceExtension,
+                [&availableDeviceExtensions]( auto const & requiredDeviceExtension )
+                {
+                     return std::ranges::any_of( availableDeviceExtensions,
+                        [requiredDeviceExtension]( auto const & availableDeviceExtension ) { return strcmp( availableDeviceExtension.extensionName, requiredDeviceExtension ) == 0; } );
+                }
+            );
+
+        // this part seems to only be related to dynamic renders - but this became a core feature so not sure this is still needed.
+        /*
+            auto features  = device.template getFeatures2<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan14Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
+            bool supportsRequiredFeatures = features.template get<vk::PhysicalDeviceVulkan14Features>().dynamicRendering &&
+                                            features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
+        */
+            return supportsVulkan1_4 && supportsGraphics && supportsAllRequiredExtensions;
+        }
+    );
+
+    if ( devIter != devices.end() )
+    {
+        physicalDevice = vk::raii::PhysicalDevice(*devIter);
+        Log::Message("Vulkan Physical Device found: " + std::string(physicalDevice.getProperties().deviceName));
+    }
+    else
+    {
+        Log::Assert(false, "failed to find a suitable GPU!" );
+    }
+}
 
 

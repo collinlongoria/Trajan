@@ -39,7 +39,12 @@ void Engine::Update(float dt) {
 void Engine::Shutdown() {
     Log::Message("Shutting Down Engine");
 
-    glfwTerminate();
+    // Destroy any windows
+    // TODO: This currently will not work, if a reference to the window exists elsewhere
+    if(mWindow) mWindow.reset();
+
+    // Terminate renderer
+    renderer->shutdownVulkan();
 
     Log::Message("Goodbye!");
 }
