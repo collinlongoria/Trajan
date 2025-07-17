@@ -17,7 +17,7 @@
 
 #include <Window.hpp>
 
-class VulkanRenderer;
+class IRenderer;
 
 class Engine {
 public:
@@ -36,7 +36,7 @@ private:
     bool bInitialized = false;
     bool bShouldClose = false;
 
-    std::shared_ptr<VulkanRenderer> renderer;
+    std::shared_ptr<IRenderer> mRenderer;
     std::shared_ptr<Window> mWindow;
 };
 

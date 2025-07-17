@@ -14,7 +14,7 @@
 
 #include "Log.hpp"
 
-Window::Window(uint32_t width, uint32_t height, const std::string &name)
+Window::Window(uint32_t width, uint32_t height, const std::string &name, const VulkanRenderer* renderer)
     : mWidth(width), mHeight(height), mName(name), mWindow(nullptr)
 {
     // Create GLFW window
@@ -24,6 +24,9 @@ Window::Window(uint32_t width, uint32_t height, const std::string &name)
         Log::Error("Failed to create GLFW window!");
         return;
     }
+
+    // If renderer was passed, assume extra work needed
+
 
     mWindow = rawWindow;
 

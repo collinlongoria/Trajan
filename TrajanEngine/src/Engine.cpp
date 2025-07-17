@@ -25,8 +25,8 @@ void Engine::Initialize() {
         return;
     }
 
-    renderer = std::make_shared<VulkanRenderer>();
-    renderer->initVulkan();
+    mRenderer = std::make_shared<VulkanRenderer>();
+    mRenderer->Initialize();
 
     bShouldClose = false;
     bInitialized = true;
@@ -39,18 +39,20 @@ void Engine::Update(float dt) {
 void Engine::Shutdown() {
     Log::Message("Shutting Down Engine");
 
+    // Terminate renderer
+    mRenderer->Shutdown();
+
     // Destroy any windows
     // TODO: This currently will not work, if a reference to the window exists elsewhere
     if(mWindow) mWindow.reset();
-
-    // Terminate renderer
-    renderer->shutdownVulkan();
 
     Log::Message("Goodbye!");
 }
 
 void Engine::CreateWindow(const std::string &windowName, uint32_t width, uint32_t height) {
     mWindow = std::make_shared<Window>(width, height, windowName);
+
+    if(mRenderer) mRenderer->WindowInitialization(mWindow->NativeWindow());
 
     if(!mWindow) {
         Log::Error("Failed to create window");
