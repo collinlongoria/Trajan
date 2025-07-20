@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.29)
+project(TrajanEngine LANGUAGES CXX)
+
 # Require Vulkan
 find_package(Vulkan REQUIRED)
 
@@ -24,7 +27,7 @@ target_compile_definitions(TrajanEngine PUBLIC
 )
 
 # Link external libraries
-target_link_libraries(TrajanEngine PRIVATE glfw)
+target_link_libraries(TrajanEngine PRIVATE glfw glslang SPIRV)
 
 target_link_libraries(TrajanEngine PUBLIC Vulkan::Vulkan)
 

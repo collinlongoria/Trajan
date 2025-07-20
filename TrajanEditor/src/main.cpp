@@ -10,22 +10,12 @@
 int main(void) {
 
     // UNIT TEST: Shader Compilation
-    ShaderCompileOptions vertOptions{
-        .stage = ShaderStage::Vertex,
-        .sourcePath = "assets/shaders/test_shader.vert.glsl"
-    };
-
-    ShaderCompileOptions fragOptions{
-        .stage = ShaderStage::Fragment,
-        .sourcePath = "assets/shaders/test_shader.frag.glsl"
-    };
-
-    auto vertResult = CompileShaderToSpirv(vertOptions);
-    auto fragResult = CompileShaderToSpirv(fragOptions);
+    auto vertResult = CompileGLSLtoSPIRV("assets/shaders/test_shader.vert.glsl",ShaderStage::Vertex);
+    auto fragResult = CompileGLSLtoSPIRV("assets/shaders/test_shader.frag.glsl",ShaderStage::Fragment);
 
     if(vertResult && fragResult) {
-        WriteSpirvToFile("assets/shaders/test_shader.vert.spv", vertResult->spirv);
-        WriteSpirvToFile("assets/shaders/test_shader.frag.spv", fragResult->spirv);
+        WriteSpirvToFile("assets/shaders/test_shader.vert.spv", vertResult.value());
+        WriteSpirvToFile("assets/shaders/test_shader.frag.spv", fragResult.value());
         Log::Message("Compiled and saved both shaders!");
     }
 

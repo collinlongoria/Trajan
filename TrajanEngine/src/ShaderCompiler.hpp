@@ -28,20 +28,7 @@ enum class ShaderStage {
     TessEval
 };
 
-struct CompiledShader {
-  std::vector<uint32_t> spirv;
-    std::string warnings;
-};
-
-struct ShaderCompileOptions {
-    ShaderStage stage;
-    std::string sourcePath;
-    std::string entryPoint = "main";
-    std::string targetEnv = "vulkan1.4";
-    std::vector<std::string> defines;
-};
-
-TRAJANENGINE_API std::optional<CompiledShader> CompileShaderToSpirv(const ShaderCompileOptions& options);
+TRAJANENGINE_API std::optional<std::vector<uint32_t>> CompileGLSLtoSPIRV(const std::string& source, ShaderStage stage);
 
 TRAJANENGINE_API bool WriteSpirvToFile(const std::string& path, const std::vector<uint32_t>& spirv); // <-- will be removed when I make an asset manager
 
