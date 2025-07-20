@@ -81,7 +81,15 @@ void Logger::Error(const std::string &message) {
     std::string color_str = "\033[0;31m";
     std::string log_str = "[TRAJAN][" + timestamp_str + "][ERROR  ] " + message;
 
-    Output(color_str + log_str);
+    //Output(color_str + log_str)
+
+    // override Output() so I can call cerr (maybe do this better?)
+    std::cerr << color_str << log_str << "\n";
+
+    // Write to log file
+    if(file.is_open()) {
+        file << color_str << log_str << "\033[0;37m\n";
+    }
 }
 
 void Logger::Assert(bool condition, const std::string &message) {

@@ -39,27 +39,24 @@ private:
 
     std::vector<const char*>  getRequiredExtensions();
 
-
-    /* Instance */
+    /*
+     * The order of declaration for vk::raii objects MUST
+     * match the order that vulkan requires, or it will not work properly
+     * and it will segfault upon shutdown.
+     */
+    // TODO: create a struct for window-specific objects to support multiple windows
     vk::raii::Context context;
-    vk::raii::Instance instance = nullptr;
-    vk::raii::SurfaceKHR surface = nullptr;
-
-    /* Devices */
-    vk::raii::PhysicalDevice physicalDevice = nullptr; // Physical Device, i.e the GPU
-    vk::raii::Device device = nullptr; // Logical Device, i.e the.... ???
-
-    /* Queues */
-    vk::raii::Queue graphicsQueue = nullptr;
-    vk::raii::Queue presentQueue = nullptr;
-
-    /* Swap Chain */
-    vk::raii::SwapchainKHR swapChain = nullptr;
-    std::vector<vk::Image> swapChainImages;
-    vk::Format swapChainImageFormat = vk::Format::eUndefined;
-    vk::Extent2D swapChainExtent = {};
+    vk::raii::Instance instance                          = nullptr;
+    vk::raii::SurfaceKHR surface                         = nullptr;
+    vk::raii::PhysicalDevice physicalDevice              = nullptr;
+    vk::raii::Device device                              = nullptr;
+    vk::raii::Queue graphicsQueue                        = nullptr;
+    vk::raii::Queue presentQueue                         = nullptr;
+    vk::raii::SwapchainKHR swapChain                     = nullptr;
     std::vector<vk::raii::ImageView> swapChainImageViews;
-
+    std::vector<vk::Image> swapChainImages;
+    vk::Format swapChainImageFormat                      = vk::Format::eUndefined;
+    vk::Extent2D swapChainExtent                         = {};
 };
 
 

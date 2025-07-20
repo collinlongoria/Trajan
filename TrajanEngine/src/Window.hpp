@@ -13,13 +13,12 @@
 #ifndef WINDOW_HPP
 #define WINDOW_HPP
 
-#include <TrajanEngine.hpp>
-
+#include <string>
 #include "GLFW/glfw3.h"
 
 class VulkanRenderer;
 
-class TRAJANENGINE_API Window {
+class Window {
 public:
     Window(uint32_t width, uint32_t height, const std::string& name, const VulkanRenderer* renderer = nullptr);
     ~Window();

@@ -18,6 +18,7 @@
 #include "Log.hpp"
 
 #include <iostream>
+#include <limits>
 
 // Required Vulkan extensions
 std::vector<const char*> requiredDeviceExtension = {
@@ -90,12 +91,22 @@ void VulkanRenderer::Shutdown() {
     // Good manners
     if( device != nullptr ) device.waitIdle();
 
-    // destroy vulkan objects
+    /*
+    // clear window related variables
+    swapChainImageViews.clear();
+    swapChainImages.clear();
     swapChain = nullptr;
+
+    // destory queues
+    graphicsQueue = nullptr;
+    presentQueue = nullptr;
+
+    // destroy vulkan objects
     device = nullptr;
     surface = nullptr;
     instance = nullptr;
-
+    context = vk::raii::Context(); // resets the context?
+*/
     glfwTerminate();
 }
 
@@ -119,7 +130,7 @@ void VulkanRenderer::createInstance() {
     // Start by creating the base context
     // (it was crashing before I did this)
     Log::Message("Creating Vulkan context...");
-    //context = vk::raii::Context();
+    context = vk::raii::Context();
 
     vk::DebugUtilsMessengerCreateInfoEXT dbgCreateInfo{
         .messageSeverity =

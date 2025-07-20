@@ -15,57 +15,30 @@
 
 #include <TrajanEngine.hpp>
 
-#include <Window.hpp>
-
+class Window;
 class IRenderer;
 
-class Engine {
-public:
-    Engine() = default;
-    ~Engine() = default;
+namespace Trajan {
+    class TRAJANENGINE_API Engine {
+    public:
+        Engine() = default;
+        ~Engine() = default;
 
-    void Initialize();
-    void Update(float dt);
-    void Shutdown();
+        void Initialize();
+        void Update(float dt);
+        void Shutdown();
 
-    void CreateWindow(const std::string& windowName, uint32_t width, uint32_t height);
+        void CreateWindow(const std::string& windowName, uint32_t width, uint32_t height);
 
-    void CallShutdown();
-    bool ShouldClose();
-private:
-    bool bInitialized = false;
-    bool bShouldClose = false;
+        void RequestShutdown() { bShouldClose = true; };
+        bool ShouldShutdown() const;
+    private:
+        bool bInitialized = false;
+        bool bShouldClose = false;
 
-    std::shared_ptr<IRenderer> mRenderer;
-    std::shared_ptr<Window> mWindow;
-};
-
-std::shared_ptr<Engine> GetEngine();
-
-inline void Trajan::Initialize() {
-    GetEngine()->Initialize();
+        std::shared_ptr<IRenderer> mRenderer;
+        std::shared_ptr<Window> mWindow;
+    };
 }
-
-inline void Trajan::CreateWindow(uint32_t width, uint32_t height, const std::string &name) {
-    GetEngine()->CreateWindow(name, width, height);
-}
-
-inline void Trajan::Shutdown() {
-    GetEngine()->Shutdown();
-}
-
-inline bool Trajan::ShouldClose() {
-    return GetEngine()->ShouldClose();
-}
-
-inline void Trajan::Update(float dt) {
-    GetEngine()->Update(dt);
-}
-
-
-
-
-
-
 
 #endif //ENGINE_HPP

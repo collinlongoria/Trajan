@@ -32,11 +32,9 @@ namespace Trajan {
     TRAJANENGINE_API std::shared_ptr<ILogger> GetLogger();
 
     // Engine
-    TRAJANENGINE_API void Initialize();
-    TRAJANENGINE_API void CreateWindow(uint32_t width, uint32_t height, const std::string& name);
-    TRAJANENGINE_API void Update(float dt);
-    TRAJANENGINE_API bool ShouldClose();
-    TRAJANENGINE_API void Shutdown();
+    class Engine; // Opaque forward declaration
+
+    [[nodiscard]] TRAJANENGINE_API std::unique_ptr<Engine> CreateEngine();
 }
 
 // Suppress MSVC warning about DLL interface for STL classes
@@ -45,4 +43,5 @@ namespace Trajan {
 #pragma warning(disable:4251)
 #endif
 
+#include "Engine.hpp"
 #endif //TRAJANENGINE_HPP
