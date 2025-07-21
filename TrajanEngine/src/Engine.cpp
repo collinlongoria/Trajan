@@ -38,6 +38,7 @@ namespace Trajan {
 
     void Engine::Update(float dt) {
         if(mWindow) mWindow->PollEvents();
+        if(mRenderer) mRenderer->Render(dt);
     }
 
     void Engine::Shutdown() {

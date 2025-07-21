@@ -26,6 +26,8 @@ public:
 
     void WindowInitialization(GLFWwindow* window) override;
 
+    void Render(float dt) override;
+
     void Shutdown() override;
 
 private:
@@ -36,6 +38,17 @@ private:
     void createSwapChain(GLFWwindow* window);
     void createImageViews();
     void createGraphicsPipeline();
+    [[nodiscard]] vk::raii::ShaderModule createShaderModule(const std::vector<char>& code) const;
+    void createCommandPool();
+    void createCommandBuffer();
+
+    void createSyncObjects();
+
+    void transitionImageLayout(uint32_t currentFrame, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+        vk::AccessFlags2 srcAccessMask, vk::AccessFlags2 dstAccessMask, vk::PipelineStageFlags2 srcStageMask,
+        vk::PipelineStageFlags2 dstStageMask);
+    void recordCommandBuffer(uint32_t imageIndex);
+    void drawFrame();
 
     std::vector<const char*>  getRequiredExtensions();
 
@@ -48,15 +61,28 @@ private:
     vk::raii::Context context;
     vk::raii::Instance instance                          = nullptr;
     vk::raii::SurfaceKHR surface                         = nullptr;
+
     vk::raii::PhysicalDevice physicalDevice              = nullptr;
     vk::raii::Device device                              = nullptr;
+
     vk::raii::Queue graphicsQueue                        = nullptr;
     vk::raii::Queue presentQueue                         = nullptr;
+
     vk::raii::SwapchainKHR swapChain                     = nullptr;
     std::vector<vk::raii::ImageView> swapChainImageViews;
     std::vector<vk::Image> swapChainImages;
     vk::Format swapChainImageFormat                      = vk::Format::eUndefined;
     vk::Extent2D swapChainExtent                         = {};
+
+    vk::raii::PipelineLayout pipelineLayout              = nullptr;
+    vk::raii::Pipeline graphicsPipeline                  = nullptr;
+    vk::raii::CommandPool commandPool                    = nullptr;
+    vk::raii::CommandBuffer commandBuffer                = nullptr;
+    uint32_t graphicsIndex                               = 0;
+
+    vk::raii::Semaphore presentCompleteSemaphore         = nullptr;
+    vk::raii::Semaphore renderFinishedSemaphore          = nullptr;
+    vk::raii::Fence drawFence                            = nullptr;
 };
 
 

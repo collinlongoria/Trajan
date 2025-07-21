@@ -167,8 +167,14 @@ std::optional<std::vector<uint32_t>> CompileGLSLtoSPIRV(const std::string& sourc
     EShLanguage shaderType = ToEShLanguage(stage);
     glslang::TShader shader(shaderType);
 
-    const char* input = ReadTextFile(source).value().c_str();
-    shader.setStrings(&input, 1);
+    auto srcOpt = ReadTextFile(source);
+    if(!srcOpt) {
+        Log::Error("Cannot open shader file: " + source);
+        return std::nullopt;
+    }
+    std::string src = std::move(*srcOpt);
+    const char* strings[] = { src.c_str() };
+    shader.setStrings(strings, 1);
     shader.setEnvInput(glslang::EShSourceGlsl, shaderType, glslang::EShClientVulkan, 450);
     shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_4);
     shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_5);

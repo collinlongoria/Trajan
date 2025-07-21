@@ -24,6 +24,8 @@ public:
 
     virtual void WindowInitialization(GLFWwindow* window) = 0;
 
+    virtual void Render(float dt) = 0;
+
     virtual void Shutdown() = 0;
 };
 

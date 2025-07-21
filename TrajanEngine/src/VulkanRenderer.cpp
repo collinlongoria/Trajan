@@ -10,6 +10,8 @@
 * https://opensource.org/licenses/MIT
 */
 #include "VulkanRenderer.hpp"
+
+#include <fstream>
 #include <vulkan/vk_platform.h>
 
 #include <vector>
@@ -20,12 +22,32 @@
 #include <iostream>
 #include <limits>
 
+// Helper function to read a file
+// TODO: move this when it makes more sense
+static std::vector<char> readFile(const std::string& filename) {
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+    if(!file.is_open()) {
+        Log::Assert(false, "Failed to open a file in VulkanRenderer");
+    }
+
+    std::vector<char> buffer(file.tellg());
+
+    file.seekg(0, std::ios::beg);
+    file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+
+    file.close();
+
+    return buffer;
+}
+
 // Required Vulkan extensions
 std::vector<const char*> requiredDeviceExtension = {
     vk::KHRSwapchainExtensionName,
     vk::KHRSpirv14ExtensionName,
     vk::KHRSynchronization2ExtensionName,
-    vk::KHRCreateRenderpass2ExtensionName
+    vk::KHRCreateRenderpass2ExtensionName,
+    vk::KHRDynamicRenderingExtensionName,
 };
 
 // Validation layer
@@ -84,29 +106,19 @@ void VulkanRenderer::WindowInitialization(GLFWwindow* window) {
     createSwapChain(window); // required after window creation <-- unique per window
     createImageViews(); // required after window creation <-- unique per window
     createGraphicsPipeline();
+    createCommandPool();
+    createCommandBuffer();
+    createSyncObjects();
 }
 
+void VulkanRenderer::Render(float dt) {
+    drawFrame();
+}
 
 void VulkanRenderer::Shutdown() {
     // Good manners
     if( device != nullptr ) device.waitIdle();
 
-    /*
-    // clear window related variables
-    swapChainImageViews.clear();
-    swapChainImages.clear();
-    swapChain = nullptr;
-
-    // destory queues
-    graphicsQueue = nullptr;
-    presentQueue = nullptr;
-
-    // destroy vulkan objects
-    device = nullptr;
-    surface = nullptr;
-    instance = nullptr;
-    context = vk::raii::Context(); // resets the context?
-*/
     glfwTerminate();
 }
 
@@ -230,12 +242,12 @@ void VulkanRenderer::pickPhysicalDevice() {
             );
 
         // this part seems to only be related to dynamic renders - but this became a core feature so not sure this is still needed.
-        /*
-            auto features  = device.template getFeatures2<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan14Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
-            bool supportsRequiredFeatures = features.template get<vk::PhysicalDeviceVulkan14Features>().dynamicRendering &&
+
+            auto features  = device.template getFeatures2<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceVulkan14Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
+            bool supportsRequiredFeatures = features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering &&
                                             features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
-        */
-            return supportsVulkan1_4 && supportsGraphics && supportsAllRequiredExtensions;
+
+            return supportsVulkan1_4 && supportsGraphics && supportsAllRequiredExtensions && supportsRequiredFeatures;
         }
     );
 
@@ -292,9 +304,10 @@ void VulkanRenderer::createLogicalDevice() {
     }
 
     // Query for Vulkan 1.4 features
-    vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan14Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT> featureChain = {
+    vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features, vk::PhysicalDeviceVulkan14Features, vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT> featureChain = {
         { }, // vk::PhysicalDeviceFeatures2
-        { /*.dynamicRendering = true*/ }, // vk::PhysicalDeviceVulkan14Features
+        { .synchronization2 = true, .dynamicRendering = true }, // vk::PhysicalDeviceVulkan13Features
+        { }, // vk::PhysicalDeviceVulkan14Features
         { .extendedDynamicState = true } // vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT
     };
 
@@ -400,6 +413,249 @@ void VulkanRenderer::createImageViews() {
 }
 
 void VulkanRenderer::createGraphicsPipeline() {
+    // TODO: you already know
+    auto vertCode = readFile( "assets/shaders/triangle.vert.spv" );
+    auto fragCode = readFile( "assets/shaders/triangle.frag.spv" );
 
+    vk::raii::ShaderModule vertShaderModule = createShaderModule( vertCode );
+    vk::raii::ShaderModule fragShaderModule = createShaderModule( fragCode );
+
+    // Define shader stage pipeline
+    vk::PipelineShaderStageCreateInfo vertShaderStageInfo{
+        .stage = vk::ShaderStageFlagBits::eVertex,
+        .module = vertShaderModule,
+        .pName = "main"
+    };
+
+    vk::PipelineShaderStageCreateInfo fragShaderStageInfo{
+        .stage = vk::ShaderStageFlagBits::eFragment,
+        .module = fragShaderModule,
+        .pName = "main"
+    };
+
+    vk::PipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+
+    // Define pipeline
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo; //TODO: <- nothing yet
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly{ .topology = vk::PrimitiveTopology::eTriangleList };
+    vk::PipelineViewportStateCreateInfo viewportState {
+        .viewportCount = 1,
+        .scissorCount = 1,
+    };
+
+    vk::PipelineRasterizationStateCreateInfo rasterizer{
+        .depthClampEnable = vk::False,
+        .rasterizerDiscardEnable = vk::False,
+        .polygonMode = vk::PolygonMode::eFill,
+        .cullMode = vk::CullModeFlagBits::eBack,
+        .frontFace = vk::FrontFace::eClockwise,
+        .depthBiasEnable = vk::False,
+        .depthBiasSlopeFactor = 1.0f,
+        .lineWidth = 1.0f
+    };
+
+    vk::PipelineMultisampleStateCreateInfo multisampling{
+        .rasterizationSamples = vk::SampleCountFlagBits::e1,
+        .sampleShadingEnable = vk::False
+    };
+
+    vk::PipelineColorBlendAttachmentState colorBlendAttachment{
+        .blendEnable = vk::False,
+        .colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA,
+    };
+    vk::PipelineColorBlendStateCreateInfo colorBlending{
+        .logicOpEnable = vk::False,
+        .logicOp = vk::LogicOp::eCopy,
+        .attachmentCount = 1,
+        .pAttachments = &colorBlendAttachment,
+    };
+
+    std::vector dynamicStates{
+        vk::DynamicState::eViewport,
+        vk::DynamicState::eScissor,
+    };
+    vk::PipelineDynamicStateCreateInfo dynamicState{
+        .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+        .pDynamicStates = dynamicStates.data()
+    };
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutInfo{
+        .setLayoutCount = 0,
+        .pushConstantRangeCount = 0,
+    };
+
+    Log::Message("Creating Pipeline Layout...");
+    pipelineLayout = vk::raii::PipelineLayout( device, pipelineLayoutInfo );
+
+    vk::PipelineRenderingCreateInfo pipelineRenderingCreateInfo{
+        .colorAttachmentCount = 1,
+        .pColorAttachmentFormats = &swapChainImageFormat,
+    };
+    vk::GraphicsPipelineCreateInfo pipelineInfo{
+        .pNext = &pipelineRenderingCreateInfo,
+        .stageCount = 2,
+        .pStages = shaderStages,
+        .pVertexInputState = &vertexInputInfo,
+        .pInputAssemblyState = &inputAssembly,
+        .pViewportState = &viewportState,
+        .pRasterizationState = &rasterizer,
+        .pMultisampleState = &multisampling,
+        .pColorBlendState = &colorBlending,
+        .pDynamicState = &dynamicState,
+        .layout = pipelineLayout,
+        .renderPass = nullptr,
+    };
+
+    Log::Message("Creating Graphics Pipeline ...");
+    graphicsPipeline = vk::raii::Pipeline( device, nullptr, pipelineInfo );
 }
 
+void VulkanRenderer::createCommandPool() {
+    vk::CommandPoolCreateInfo poolInfo{
+        .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        .queueFamilyIndex = graphicsIndex
+    };
+
+    commandPool = vk::raii::CommandPool( device, poolInfo );
+}
+
+void VulkanRenderer::createCommandBuffer() {
+    vk::CommandBufferAllocateInfo allocInfo{
+        .commandPool = commandPool,
+        .level = vk::CommandBufferLevel::ePrimary,
+        .commandBufferCount = 1
+    };
+
+    commandBuffer = std::move( vk::raii::CommandBuffers( device, allocInfo ).front() );
+}
+
+void VulkanRenderer::recordCommandBuffer(uint32_t imageIndex) {
+    // Can put initial flags here
+    commandBuffer.begin( {} );
+
+    // Before starting rendering, transition the swapchain image to COLOR_ATTACHMENT_OPTIMAL
+    transitionImageLayout(
+        imageIndex,
+        vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eColorAttachmentOptimal,
+        {}, // srcAccessMask (no need to wait for previous operations)
+        vk::AccessFlagBits2::eColorAttachmentWrite, // dstAccessMask
+        vk::PipelineStageFlagBits2::eTopOfPipe, // srcStage
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput // dstStage
+    );
+    vk::ClearValue clearColor = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    vk::RenderingAttachmentInfo attachmentInfo{
+        .imageView = swapChainImageViews[imageIndex],
+        .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+        .loadOp = vk::AttachmentLoadOp::eClear,
+        .storeOp = vk::AttachmentStoreOp::eStore,
+        .clearValue = clearColor,
+    };
+    vk::RenderingInfo renderingInfo = {
+        .renderArea = { .offset = { 0, 0 }, .extent = swapChainExtent },
+        .layerCount = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &attachmentInfo,
+    };
+
+    commandBuffer.beginRendering( renderingInfo );
+    commandBuffer.bindPipeline( vk::PipelineBindPoint::eGraphics, graphicsPipeline );
+    commandBuffer.setViewport( 0, vk::Viewport( 0.0f, 0.0f, static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height), 0, 1.0f ) );
+    commandBuffer.setScissor( 0, vk::Rect2D( vk::Offset2D( 0, 0 ), swapChainExtent ) );
+    commandBuffer.draw( 3, 1, 0, 0 );
+    commandBuffer.endRendering();
+    // After rendering, transition the swapchain images to PRESENT_SRC
+    transitionImageLayout(
+        imageIndex,
+        vk::ImageLayout::eColorAttachmentOptimal,
+        vk::ImageLayout::ePresentSrcKHR,
+        vk::AccessFlagBits2::eColorAttachmentWrite, // srcAccessMask
+        {}, // dstAccessMask
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput, // srcStage
+        vk::PipelineStageFlagBits2::eBottomOfPipe // dstStage
+    );
+    commandBuffer.end();
+}
+
+void VulkanRenderer::transitionImageLayout(uint32_t currentFrame, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+    vk::AccessFlags2 srcAccessMask, vk::AccessFlags2 dstAccessMask, vk::PipelineStageFlags2 srcStageMask,
+    vk::PipelineStageFlags2 dstStageMask) {
+    vk::ImageMemoryBarrier2 barrier = {
+        .srcStageMask = srcStageMask,
+        .srcAccessMask = srcAccessMask,
+        .dstStageMask = dstStageMask,
+        .dstAccessMask = dstAccessMask,
+        .oldLayout = oldLayout,
+        .newLayout = newLayout,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = swapChainImages[currentFrame],
+        .subresourceRange = {
+            .aspectMask = vk::ImageAspectFlagBits::eColor,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1,
+        }
+    };
+    vk::DependencyInfo dependencyInfo = {
+        .dependencyFlags = {},
+        .imageMemoryBarrierCount = 1,
+        .pImageMemoryBarriers = &barrier
+    };
+
+    commandBuffer.pipelineBarrier2( dependencyInfo );
+}
+
+void VulkanRenderer::createSyncObjects() {
+    presentCompleteSemaphore = vk::raii::Semaphore( device, vk::SemaphoreCreateInfo() );
+    renderFinishedSemaphore  = vk::raii::Semaphore( device, vk::SemaphoreCreateInfo() );
+    drawFence = vk::raii::Fence( device, { .flags = vk::FenceCreateFlagBits::eSignaled } );
+}
+
+void VulkanRenderer::drawFrame() {
+    presentQueue.waitIdle();
+
+    auto [ result, imageIndex ] = swapChain.acquireNextImage( UINT64_MAX, *presentCompleteSemaphore, nullptr );
+    recordCommandBuffer( imageIndex );
+
+    device.resetFences( *drawFence );
+    vk::PipelineStageFlags waitDestinationStageMask( vk::PipelineStageFlagBits::eColorAttachmentOutput );
+    const vk::SubmitInfo submitInfo{
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &*presentCompleteSemaphore,
+        .pWaitDstStageMask = &waitDestinationStageMask,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &*commandBuffer,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = &*renderFinishedSemaphore,
+    };
+
+    graphicsQueue.submit( submitInfo, *drawFence );
+    while( vk::Result::eTimeout == device.waitForFences( *drawFence, vk::True, UINT64_MAX ) );
+
+    const vk::PresentInfoKHR presentInfoKHR{
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &*renderFinishedSemaphore,
+        .swapchainCount = 1,
+        .pSwapchains = &*swapChain,
+        .pImageIndices = &imageIndex,
+    };
+    result = presentQueue.presentKHR( presentInfoKHR );
+    switch( result ) {
+        case vk::Result::eSuccess: break;
+        case vk::Result::eSuboptimalKHR: Log::Warn("vk::Queue::presentKHR returned vk::Result::eSuboptimalKHR !"); break;
+        default: break; // an unexpected result is returned.
+    }
+}
+
+vk::raii::ShaderModule VulkanRenderer::createShaderModule(const std::vector<char> &code) const {
+    vk::ShaderModuleCreateInfo createInfo{
+        .codeSize = code.size() * sizeof( char ),
+        .pCode = reinterpret_cast<const uint32_t*>( code.data() ),
+    };
+
+    vk::raii::ShaderModule shaderModule { device, createInfo };
+
+    return shaderModule;
+}

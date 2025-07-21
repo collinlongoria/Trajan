@@ -10,12 +10,12 @@
 int main(void) {
 
     // UNIT TEST: Shader Compilation
-    auto vertResult = CompileGLSLtoSPIRV("assets/shaders/test_shader.vert.glsl",ShaderStage::Vertex);
-    auto fragResult = CompileGLSLtoSPIRV("assets/shaders/test_shader.frag.glsl",ShaderStage::Fragment);
+    auto vertResult = CompileGLSLtoSPIRV("assets/shaders/triangle.vert.glsl",ShaderStage::Vertex);
+    auto fragResult = CompileGLSLtoSPIRV("assets/shaders/triangle.frag.glsl",ShaderStage::Fragment);
 
     if(vertResult && fragResult) {
-        WriteSpirvToFile("assets/shaders/test_shader.vert.spv", vertResult.value());
-        WriteSpirvToFile("assets/shaders/test_shader.frag.spv", fragResult.value());
+        WriteSpirvToFile("assets/shaders/triangle.vert.spv", vertResult.value());
+        WriteSpirvToFile("assets/shaders/triangle.frag.spv", fragResult.value());
         Log::Message("Compiled and saved both shaders!");
     }
 
