@@ -30,28 +30,37 @@ public:
 
     void Shutdown() override;
 
+    bool framebufferResized = false;
 private:
     void createInstance();
     void createSurface(GLFWwindow* window);
     void pickPhysicalDevice();
     void createLogicalDevice();
-    void createSwapChain(GLFWwindow* window);
+    void createSwapChain();
     void createImageViews();
     void createGraphicsPipeline();
     [[nodiscard]] vk::raii::ShaderModule createShaderModule(const std::vector<char>& code) const;
     void createCommandPool();
-    void createCommandBuffer();
+    void createCommandBuffers();
 
     void createSyncObjects();
 
-    void transitionImageLayout(uint32_t currentFrame, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+    void transitionImageLayout(uint32_t imageIndex, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
         vk::AccessFlags2 srcAccessMask, vk::AccessFlags2 dstAccessMask, vk::PipelineStageFlags2 srcStageMask,
         vk::PipelineStageFlags2 dstStageMask);
     void recordCommandBuffer(uint32_t imageIndex);
     void drawFrame();
 
+    void cleanupSwapChain();
+    void recreateSwapChain();
+
     std::vector<const char*>  getRequiredExtensions();
 
+    GLFWwindow* registeredWindow;
+
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+    uint32_t currentFrame   = 0;
+    uint32_t semaphoreIndex = 0;
     /*
      * The order of declaration for vk::raii objects MUST
      * match the order that vulkan requires, or it will not work properly
@@ -77,12 +86,12 @@ private:
     vk::raii::PipelineLayout pipelineLayout              = nullptr;
     vk::raii::Pipeline graphicsPipeline                  = nullptr;
     vk::raii::CommandPool commandPool                    = nullptr;
-    vk::raii::CommandBuffer commandBuffer                = nullptr;
+    std::vector<vk::raii::CommandBuffer> commandBuffers;
     uint32_t graphicsIndex                               = 0;
 
-    vk::raii::Semaphore presentCompleteSemaphore         = nullptr;
-    vk::raii::Semaphore renderFinishedSemaphore          = nullptr;
-    vk::raii::Fence drawFence                            = nullptr;
+    std::vector<vk::raii::Semaphore> presentCompleteSemaphores;
+    std::vector<vk::raii::Semaphore> renderFinishedSemaphores;
+    std::vector<vk::raii::Fence> inFlightFences;
 };
 
 
