@@ -14,13 +14,13 @@
 #define WINDOW_HPP
 
 #include <string>
+#define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
-
-class VulkanRenderer;
+#include "IRenderer.hpp"
 
 class Window {
 public:
-    Window(uint32_t width, uint32_t height, const std::string& name, const VulkanRenderer* renderer = nullptr);
+    Window(uint32_t width, uint32_t height, const std::string& name, RenderAPI api);
     ~Window();
 
     // Poll and process GLFW events

@@ -14,6 +14,7 @@
 #define ENGINE_HPP
 
 #include <TrajanEngine.hpp>
+#include "IRenderer.hpp"
 
 class Window;
 class IRenderer;
@@ -24,17 +25,20 @@ namespace Trajan {
         Engine() = default;
         ~Engine() = default;
 
-        void Initialize();
+        void Initialize(int width, int height, const std::string& name, RenderAPI api);
+
         void Update(float dt);
         void Shutdown();
 
-        void CreateWindow(const std::string& windowName, uint32_t width, uint32_t height);
-
         void RequestShutdown() { bShouldClose = true; };
-        bool ShouldShutdown() const;
+        [[nodiscard]] bool ShouldShutdown() const;
+
+        [[nodiscard]] IRenderer* GetRenderer() const { return mRenderer.get(); }
+
     private:
-        bool bInitialized = false;
         bool bShouldClose = false;
+
+        RenderAPI mActiveAPI = RenderAPI::OpenGL; // Default to OpenGL
 
         std::shared_ptr<IRenderer> mRenderer;
         std::shared_ptr<Window> mWindow;

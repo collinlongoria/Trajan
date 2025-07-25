@@ -74,7 +74,7 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(vk::DebugUtilsMessageSever
 
     return vk::False;
 }
-
+/*
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
     auto renderer = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
     renderer->framebufferResized = true;
@@ -184,7 +184,7 @@ void VulkanRenderer::createInstance() {
     /*
      * VkApplicationInfo provides optional metadata about the application
      * which can help drivers optimize or track usage
-     */
+
     constexpr vk::ApplicationInfo appInfo{ .pApplicationName = "Trajan",
         .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
         .pEngineName = "Trajan Engine",
@@ -226,7 +226,7 @@ void VulkanRenderer::createInstance() {
      * VkInstanceCreateInfo defines parameters for creating a VkInstance,
      * including which extensions and validation layers to enable, and
      * a pointer to VkApplicationInfo
-     */
+
     vk::InstanceCreateInfo createInfo{
         .pNext                   = enableValidationLayers ? &dbgCreateInfo : nullptr,
         .pApplicationInfo        = &appInfo,
@@ -716,3 +716,4 @@ vk::raii::ShaderModule VulkanRenderer::createShaderModule(const std::vector<char
 
     return shaderModule;
 }
+*/

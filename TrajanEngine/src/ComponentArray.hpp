@@ -21,4 +21,63 @@
 #include "Entity.hpp"
 #include "Log.hpp"
 
+class IComponentArray {
+public:
+    virtual ~IComponentArray() = default;
+    virtual void EntityDestroyed(Entity entity) = 0;
+};
+
+template <typename T>
+class ComponentArray : public IComponentArray {
+public:
+    void InsertData(Entity entity, T component) {
+        if( entityToIndexMap.contains( entity ) ) {
+            Log::Error("Attempted redundant add of component " + std::to_string(T) + " to entity of ID: " + std::to_string(entity) );
+            return;
+        }
+
+        // Insert entry at end and update map
+        size_t index = size;
+        entityToIndexMap[entity] = index;
+        indexToEntityMap[index] = entity;
+        ComponentArray[index] = component;
+        size++;
+    }
+
+    void RemoveData(Entity entity) {
+        if( !entityToIndexMap.contains( entity ) ) {
+            Log::Warn("Tried to remove " + std::to_string(T) + " from non-owning entity of ID " + std::to_string(entity) );
+            return;
+        }
+
+        // Copy element at end into deleted element's place <- Goal is to maintain density
+        size_t indexRemoved = entityToIndexMap[entity];
+        size_t indexLast = size - 1;
+        componentArray[indexRemoved] = componentArray[indexLast];
+
+        // Update the map
+        Entity entityLast = indexToEntityMap[indexLast];
+        entityToIndexMap[entityLast] = indexRemoved;
+        indexToEntityMap[indexRemoved] = entityLast;
+
+        entityToIndexMap.erase(entity);
+        indexToEntityMap.erase(indexLast);
+
+        size--;
+    }
+
+    void EntityDestroyed(Entity entity) override {
+        // This check seems redundant
+        if( entityToIndexMap.contains( entity ) ) {
+            RemoveData(entity);
+        }
+    }
+
+private:
+    std::array<T, MAX_ENTITIES> componentArray;
+    std::unordered_map<Entity, size_t> entityToIndexMap;
+    std::unordered_map<Entity, size_t> indexToEntityMap;
+    size_t size;
+};
+
 #endif //COMPONENTARRAY_HPP

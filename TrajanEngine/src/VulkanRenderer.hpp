@@ -22,6 +22,7 @@ public:
     VulkanRenderer() = default;
     ~VulkanRenderer() override = default;
 
+    /*
     void Initialize() override;
 
     void WindowInitialization(GLFWwindow* window) override;
@@ -29,9 +30,10 @@ public:
     void Render(float dt) override;
 
     void Shutdown() override;
-
+*/
     bool framebufferResized = false;
 private:
+    /*
     void createInstance();
     void createSurface(GLFWwindow* window);
     void pickPhysicalDevice();
@@ -65,7 +67,7 @@ private:
      * The order of declaration for vk::raii objects MUST
      * match the order that vulkan requires, or it will not work properly
      * and it will segfault upon shutdown.
-     */
+
     // TODO: create a struct for window-specific objects to support multiple windows
     vk::raii::Context context;
     vk::raii::Instance instance                          = nullptr;
@@ -92,6 +94,7 @@ private:
     std::vector<vk::raii::Semaphore> presentCompleteSemaphores;
     std::vector<vk::raii::Semaphore> renderFinishedSemaphores;
     std::vector<vk::raii::Fence> inFlightFences;
+    */
 };
 
 
