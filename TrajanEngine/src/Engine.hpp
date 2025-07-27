@@ -18,6 +18,7 @@
 
 class Window;
 class IRenderer;
+class Orchestrator;
 
 namespace Trajan {
     class TRAJANENGINE_API Engine {
@@ -40,6 +41,7 @@ namespace Trajan {
 
         RenderAPI mActiveAPI = RenderAPI::OpenGL; // Default to OpenGL
 
+        std::shared_ptr<Orchestrator> mOrchestrator;
         std::shared_ptr<IRenderer> mRenderer;
         std::shared_ptr<Window> mWindow;
     };

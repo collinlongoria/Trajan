@@ -15,6 +15,8 @@
 #include <Window.hpp>
 #include <OpenGLRenderer.hpp>
 
+#include "Orchestrator.hpp"
+
 namespace Trajan {
 
     // Factory function, exported by the library
@@ -60,6 +62,7 @@ namespace Trajan {
         // TODO: This fails in terms of modifiability. Consider refactor.
         switch( api ) {
             case RenderAPI::OpenGL:
+                Log::Message( "Initializing OpenGL Renderer..." );
                 mRenderer = std::make_shared<OpenGLRenderer>();
                 break;
             default:
@@ -67,7 +70,14 @@ namespace Trajan {
                 return;
         }
 
+        Log::Message( "Initialized renderer..." );
         mRenderer->Initialize(info);
+
+        Log::Message( "Initializing ECS Orchestrator..." );
+        mOrchestrator = std::make_shared<Orchestrator>();
+        mOrchestrator->Initialize();
+
+        Log::Message( "Engine initialized!" );
     }
 
     bool Engine::ShouldShutdown() const {

@@ -32,7 +32,7 @@ class ComponentArray : public IComponentArray {
 public:
     void InsertData(Entity entity, T component) {
         if( entityToIndexMap.contains( entity ) ) {
-            Log::Error("Attempted redundant add of component " + std::to_string(T) + " to entity of ID: " + std::to_string(entity) );
+            Log::Error("Attempted redundant add of component " + std::string(typeid(T).name()) + " to entity of ID: " + std::to_string(entity) );
             return;
         }
 
@@ -40,13 +40,13 @@ public:
         size_t index = size;
         entityToIndexMap[entity] = index;
         indexToEntityMap[index] = entity;
-        ComponentArray[index] = component;
+        componentArray[index] = component;
         size++;
     }
 
     void RemoveData(Entity entity) {
         if( !entityToIndexMap.contains( entity ) ) {
-            Log::Warn("Tried to remove " + std::to_string(T) + " from non-owning entity of ID " + std::to_string(entity) );
+            Log::Warn("Tried to remove " + std::string(typeid(T).name()) + " from non-owning entity of ID " + std::to_string(entity) );
             return;
         }
 

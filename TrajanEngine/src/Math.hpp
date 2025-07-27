@@ -14,6 +14,7 @@
 #define MATH_HPP
 
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 
 using Vector2 = glm::vec2;
 using Vector3 = glm::vec3;

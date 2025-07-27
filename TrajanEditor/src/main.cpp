@@ -21,12 +21,19 @@ static const uint32_t indices[] = {
 
 const char* vertexShaderSource = R"(
 #version 460 core
-layout(location = 0) in vec3 aPos;
+
+layout(std140) uniform Camera {
+    mat4 u_View;
+    mat4 u_Proj;
+    vec4 u_CameraPos; // xyz used
+};
 
 uniform mat4 u_Model;
 
+in vec3 aPosition;
+
 void main() {
-    gl_Position = u_Model * vec4(aPos, 1.0);
+    gl_Position = u_Proj * u_View * u_Model * vec4(aPosition, 1.0);
 }
 )";
 
@@ -35,7 +42,7 @@ const char* fragmentShaderSource = R"(
 out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(1.0, 0.3, 0.2, 1.0); // Red-orange
+    FragColor = vec4(1.0, 0.3, 0.2, 1.0); // red/orange
 }
 )";
 
@@ -66,6 +73,16 @@ int main(void) {
         .indexData = indices,
         .indexSize = sizeof(indices),
     };
+
+    meshDesc.layout.stride = sizeof(float) * 3;
+    meshDesc.layout.attribs.push_back({
+        VertexSemantic::Position,           // semantic
+        VertexDataType::Float32,            // type
+        3,                                  // components
+        false,                              // normalized
+        0                                   // offset
+    });
+
     uint64_t meshHandle = renderer->CreateMesh(meshDesc);
 
     ShaderDescriptor shaderDesc = {
@@ -77,17 +94,29 @@ int main(void) {
     Mesh triangleMesh { .vertexCount = 3, .indexCount = 3, .rendererHandle = meshHandle };
     Shader triangleShader { .rendererHandle = shaderHandle };
 
+    float angle = 0.0f;
+
     float dt = 0.0f;
     while(!engine->ShouldShutdown()) {
         auto start = std::chrono::high_resolution_clock::now();
 
+        FrameData fd;
+        fd.view = Matrix4(1.0f);
+        fd.proj = Matrix4(1.0f);
+        fd.cameraPos = Vector3(0.0f, 0.0f, 0.0f);
+        renderer->SetFrameData(fd);
+
         renderer->BeginFrame();
+
+        angle += dt;
+        Matrix4 model = Matrix4(1.0f);
+        model = glm::rotate(model, angle, Vector3(0.0f, 0.0f, 1.0f));
 
         RenderCommand cmd;
         cmd.type = RenderCommand::Type::Mesh;
         cmd.mesh = &triangleMesh;
         cmd.shader = &triangleShader;
-        cmd.transform = Matrix4(1.0f);
+        cmd.transform = model;
 
         renderer->SubmitRenderCommand(cmd);
         renderer->EndFrame();
