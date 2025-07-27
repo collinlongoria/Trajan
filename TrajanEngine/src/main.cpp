@@ -15,6 +15,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include "Log.hpp"
+
 int main(void) {
     // 1. Initialize GLFW
     if (!glfwInit()) {
@@ -66,6 +68,13 @@ int main(void) {
     }
 
     std::cout << "Window and Vulkan surface created successfully!\n";
+
+    Log::Message("Message");
+    Log::Warn("Warning");
+    Log::Error("Error");
+
+    Log::Assert(true, "Passed Assert");
+    Log::Assert(false, "Failed Assert!");
 
     // 6. Main loop (empty)
     while (!glfwWindowShouldClose(window)) {
