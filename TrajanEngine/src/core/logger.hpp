@@ -13,7 +13,7 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
-#include "TrajanEngine.hpp"
+#include "trajan_engine.hpp"
 #include <fstream>
 #include <mutex>
 #include <chrono>

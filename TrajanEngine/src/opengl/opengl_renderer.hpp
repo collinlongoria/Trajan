@@ -10,16 +10,16 @@
 * https://opensource.org/licenses/MIT
 */
 
-#ifndef OPENGLRENDERER_HPP
-#define OPENGLRENDERER_HPP
+#ifndef OPENGL_RENDERER_HPP
+#define OPENGL_RENDERER_HPP
 
-#include "IRenderer.hpp"
+#include "i_renderer.hpp"
 #include <glad/glad.h>
 #include <unordered_map>
 #include <vector>
 
-#include "Mesh.hpp"
-#include "Shader.hpp"
+#include "mesh.hpp"
+#include "shader.hpp"
 
 class OpenGLRenderer : public IRenderer {
 public:
@@ -107,4 +107,4 @@ private:
 
 
 
-#endif //OPENGLRENDERER_HPP
+#endif //OPENGL_RENDERER_HPP

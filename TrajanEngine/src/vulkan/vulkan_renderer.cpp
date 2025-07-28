@@ -9,7 +9,7 @@
 * This software is released under the MIT License.
 * https://opensource.org/licenses/MIT
 */
-#include "VulkanRenderer.hpp"
+#include "vulkan_renderer.hpp"
 
 #include <fstream>
 #include <vulkan/vk_platform.h>
@@ -17,7 +17,7 @@
 #include <vector>
 #include <map>
 
-#include "Log.hpp"
+#include "log.hpp"
 
 #include <iostream>
 #include <limits>

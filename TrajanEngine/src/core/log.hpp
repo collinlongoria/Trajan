@@ -13,7 +13,7 @@
 #ifndef LOG_HPP
 #define LOG_HPP
 
-#include "TrajanEngine.hpp"
+#include "trajan_engine.hpp"
 
 namespace Log {
     inline void Message(const std::string& message) {

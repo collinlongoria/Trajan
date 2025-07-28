@@ -2,11 +2,7 @@
 #include <iostream>
 #include <ostream>
 
-#include <TrajanEngine.hpp>
-#include <Log.hpp>
-
-#include "OpenGLRenderer.hpp"
-#include "ShaderCompiler.hpp"
+#include <trajan_engine.hpp>
 
 // UNIT TEST: Hello Triangle Data
 static const float vertices[] = {
@@ -110,7 +106,7 @@ int main(void) {
 
         angle += dt;
         Matrix4 model = Matrix4(1.0f);
-        model = glm::rotate(model, angle, Vector3(0.0f, 0.0f, 1.0f));
+        model = glm::rotate(model, angle, Vector3(0.0f, 1.0f, 0.0f));
 
         RenderCommand cmd;
         cmd.type = RenderCommand::Type::Mesh;

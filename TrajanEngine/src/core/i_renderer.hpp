@@ -21,7 +21,7 @@
 #include <string>
 #include <variant>
 
-#include "Math.hpp"
+#include "math.hpp"
 
 // ------------ Render API Choice ------------
 enum class RenderAPI {

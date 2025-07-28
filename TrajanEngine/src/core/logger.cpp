@@ -10,7 +10,7 @@
 * https://opensource.org/licenses/MIT
 */
 
-#include "Logger.hpp"
+#include "logger.hpp"
 
 #include <iostream>
 

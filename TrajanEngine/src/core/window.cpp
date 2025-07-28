@@ -10,9 +10,9 @@
 * https://opensource.org/licenses/MIT
 */
 
-#include "Window.hpp"
+#include "window.hpp"
 
-#include "Log.hpp"
+#include "log.hpp"
 
 Window::Window(uint32_t width, uint32_t height, const std::string &name, RenderAPI api)
     : mWidth(width), mHeight(height), mName(name), mWindow(nullptr)

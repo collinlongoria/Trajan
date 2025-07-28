@@ -14,9 +14,9 @@
 #define ORCHESTRATOR_HPP
 #include <memory>
 
-#include "ComponentManager.hpp"
-#include "EntityManager.hpp"
-#include "SystemManager.hpp"
+#include "component_manager.hpp"
+#include "entity_manager.hpp"
+#include "system_manager.hpp"
 
 class Orchestrator {
 public:

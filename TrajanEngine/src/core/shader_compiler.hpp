@@ -10,10 +10,10 @@
 * https://opensource.org/licenses/MIT
 */
 
-#ifndef SHADERCOMPILER_HPP
-#define SHADERCOMPILER_HPP
+#ifndef SHADER_COMPILER_HPP
+#define SHADER_COMPILER_HPP
 
-#include "TrajanEngine.hpp"
+#include "trajan_engine.hpp"
 
 #include <vector>
 #include <string>

@@ -10,12 +10,12 @@
 * https://opensource.org/licenses/MIT
 */
 
-#ifndef COMPONENTMANAGER_HPP
-#define COMPONENTMANAGER_HPP
+#ifndef COMPONENT_MANAGER_HPP
+#define COMPONENT_MANAGER_HPP
 #include <unordered_map>
 
-#include "Component.hpp"
-#include "ComponentArray.hpp"
+#include "component.hpp"
+#include "component_array.hpp"
 
 class ComponentManager {
 public:
@@ -101,4 +101,4 @@ private:
     }
 };
 
-#endif //COMPONENTMANAGER_HPP
+#endif //COMPONENT_MANAGER_HPP

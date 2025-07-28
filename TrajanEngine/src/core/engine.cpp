@@ -10,12 +10,12 @@
 * https://opensource.org/licenses/MIT
 */
 
-#include "Engine.hpp"
-#include <Log.hpp>
-#include <Window.hpp>
-#include <OpenGLRenderer.hpp>
+#include "engine.hpp"
+#include <log.hpp>
+#include <window.hpp>
+#include <opengl_renderer.hpp>
 
-#include "Orchestrator.hpp"
+#include "orchestrator.hpp"
 
 namespace Trajan {
 
