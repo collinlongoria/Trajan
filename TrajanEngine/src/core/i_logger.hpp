@@ -10,8 +10,8 @@
 * https://opensource.org/licenses/MIT
 */
 
-#ifndef ILOGGER_HPP
-#define ILOGGER_HPP
+#ifndef I_LOGGER_HPP
+#define I_LOGGER_HPP
 
 #include <string>
 #include <memory>
@@ -27,4 +27,4 @@ public:
     virtual void Assert(bool condition, const std::string& message) = 0;
 };
 
-#endif //ILOGGER_HPP
+#endif //I_LOGGER_HPP

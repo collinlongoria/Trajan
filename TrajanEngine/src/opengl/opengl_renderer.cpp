@@ -10,11 +10,11 @@
 * https://opensource.org/licenses/MIT
 */
 
-#include "OpenGLRenderer.hpp"
+#include "opengl_renderer.hpp"
 #include <GLFW/glfw3.h>
 
-#include "Log.hpp"
-#include "Texture.hpp"
+#include "log.hpp"
+#include "texture.hpp"
 
 // Fixed binding points for frame data
 static constexpr GLuint CAMERA_BINDING = 0;

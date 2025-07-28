@@ -16,9 +16,9 @@
 #include <optional>
 #include <queue>
 
-#include "Component.hpp"
-#include "Entity.hpp"
-#include "Log.hpp"
+#include "component.hpp"
+#include "entity.hpp"
+#include "log.hpp"
 
 class EntityManager {
 public:

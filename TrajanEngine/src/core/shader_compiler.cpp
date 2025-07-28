@@ -10,7 +10,7 @@
 * https://opensource.org/licenses/MIT
 */
 
-#include "ShaderCompiler.hpp"
+#include "shader_compiler.hpp"
 #include <fstream>
 #include <sstream>
 
@@ -18,7 +18,7 @@
 #include <glslang/Public/ResourceLimits.h>
 #include <SPIRV/GlslangToSpv.h>
 
-#include "Log.hpp"
+#include "log.hpp"
 #include "glslang/Public/resource_limits_c.h"
 
 namespace {

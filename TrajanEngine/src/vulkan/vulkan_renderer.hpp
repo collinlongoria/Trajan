@@ -10,10 +10,10 @@
 * https://opensource.org/licenses/MIT
 */
 
-#ifndef VULKANRENDERER_HPP
-#define VULKANRENDERER_HPP
+#ifndef VULKAN_RENDERER_HPP
+#define VULKAN_RENDERER_HPP
 
-#include <IRenderer.hpp>
+#include <i_renderer.hpp>
 
 #include <vulkan/vulkan_raii.hpp>
 
@@ -99,4 +99,4 @@ private:
 
 
 
-#endif //VULKANRENDERER_HPP
+#endif //VULKAN_RENDERER_HPP

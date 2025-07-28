@@ -7,11 +7,7 @@ find_package(Vulkan REQUIRED)
 find_package(OpenGL REQUIRED)
 
 # Engine Source Files
-# TODO: They do not recommend GLOB_RECURSE... fix this later
-file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
-)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/sources.cmake)
 
 # Create Shared Library
 add_library(TrajanEngine SHARED ${ENGINE_SOURCES})
@@ -24,10 +20,16 @@ target_compile_definitions(TrajanEngine PUBLIC
 )
 
 # Engine Include Paths
-target_include_directories(TrajanEngine PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${Vulkan_INCLUDE_DIR}
-        ${CMAKE_SOURCE_DIR}/external/glfw/include
+target_include_directories(TrajanEngine
+        PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/components
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/opengl
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/systems
+        PRIVATE
+            ${Vulkan_INCLUDE_DIR}
+            ${CMAKE_SOURCE_DIR}/external/glfw/include
 )
 
 # External Libraries

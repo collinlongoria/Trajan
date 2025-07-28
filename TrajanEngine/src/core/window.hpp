@@ -16,7 +16,7 @@
 #include <string>
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
-#include "IRenderer.hpp"
+#include "i_renderer.hpp"
 
 class Window {
 public:

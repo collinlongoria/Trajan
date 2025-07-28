@@ -13,8 +13,8 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
-#include <TrajanEngine.hpp>
-#include "IRenderer.hpp"
+#include <trajan_engine.hpp>
+#include "i_renderer.hpp"
 
 class Window;
 class IRenderer;

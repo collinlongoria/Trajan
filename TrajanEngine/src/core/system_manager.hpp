@@ -10,14 +10,14 @@
 * https://opensource.org/licenses/MIT
 */
 
-#ifndef SYSTEMMANAGER_HPP
-#define SYSTEMMANAGER_HPP
+#ifndef SYSTEM_MANAGER_HPP
+#define SYSTEM_MANAGER_HPP
 #include <memory>
 #include <unordered_map>
 
-#include "Component.hpp"
-#include "Log.hpp"
-#include "System.hpp"
+#include "component.hpp"
+#include "log.hpp"
+#include "system.hpp"
 
 class SystemManager {
 public:

@@ -10,16 +10,16 @@
 * https://opensource.org/licenses/MIT
 */
 
-#ifndef COMPONENTARRAY_HPP
-#define COMPONENTARRAY_HPP
+#ifndef COMPONENT_ARRAY_HPP
+#define COMPONENT_ARRAY_HPP
 
 #include <array>
 #include <unordered_map>
 
-#include "TrajanEngine.hpp"
+#include "trajan_engine.hpp"
 
-#include "Entity.hpp"
-#include "Log.hpp"
+#include "entity.hpp"
+#include "log.hpp"
 
 class IComponentArray {
 public:
@@ -80,4 +80,4 @@ private:
     size_t size;
 };
 
-#endif //COMPONENTARRAY_HPP
+#endif //COMPONENT_ARRAY_HPP

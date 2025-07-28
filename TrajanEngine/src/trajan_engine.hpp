@@ -10,10 +10,10 @@
 * https://opensource.org/licenses/MIT
 */
 
-#ifndef TRAJANENGINE_HPP
-#define TRAJANENGINE_HPP
+#ifndef TRAJAN_ENGINE_HPP
+#define TRAJAN_ENGINE_HPP
 
-#include "ILogger.hpp"
+#include "i_logger.hpp"
 
 #ifdef _WIN32
     #ifdef TRAJANENGINE_EXPORTS
@@ -43,5 +43,8 @@ namespace Trajan {
 #pragma warning(disable:4251)
 #endif
 
-#include "Engine.hpp"
-#endif //TRAJANENGINE_HPP
+#include "engine.hpp"
+#include "log.hpp"
+#include "i_renderer.hpp"
+#include "opengl_renderer.hpp"
+#endif //TRAJAN_ENGINE_HPP

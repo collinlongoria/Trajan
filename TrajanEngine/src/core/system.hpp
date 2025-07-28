@@ -14,7 +14,7 @@
 #define SYSTEM_HPP
 #include <set>
 
-#include "Entity.hpp"
+#include "entity.hpp"
 
 class System {
 public:

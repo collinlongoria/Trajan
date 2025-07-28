@@ -1,0 +1,29 @@
+set(ENGINE_SOURCES
+        ${ENGINE_SOURCES}
+        src/core/engine.cpp
+        src/core/logger.cpp
+        src/core/window.cpp
+        src/opengl/opengl_renderer.cpp
+
+        src/core/component.hpp
+        src/core/component_array.hpp
+        src/core/component_manager.hpp
+        src/core/engine.hpp
+        src/core/entity.hpp
+        src/core/entity_manager.hpp
+        src/core/i_logger.hpp
+        src/core/i_renderer.hpp
+        src/core/log.hpp
+        src/core/logger.hpp
+        src/core/math.hpp
+        src/core/mesh.hpp
+        src/core/orchestrator.hpp
+        src/core/shader.hpp
+        src/core/system.hpp
+        src/core/system_manager.hpp
+        src/core/texture.hpp
+        src/core/window.hpp
+        src/opengl/opengl_renderer.hpp
+
+        src/trajan_engine.hpp
+)
