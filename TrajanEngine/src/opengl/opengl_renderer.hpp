@@ -32,6 +32,9 @@ public:
     void SubmitRenderCommand(const RenderCommand &cmd) override;
     void EndFrame() override;
 
+    // imgui
+    ImGuiContext *GetImGuiContext() const override;
+
     // Resource Management
     uint64_t CreateMesh(const MeshDescriptor &desc) override;
     uint64_t CreateTexture(const TextureDescriptor &desc) override;
@@ -41,7 +44,7 @@ public:
     void DestroyTexture(uint64_t handle) override;
     void DestroyShader(uint64_t handle) override;
 
-    void Cleanup() override {};
+    void Cleanup() override;
 
 private:
     void* window = nullptr;

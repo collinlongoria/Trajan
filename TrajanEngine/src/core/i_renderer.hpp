@@ -23,6 +23,8 @@
 
 #include "math.hpp"
 
+struct ImGuiContext;
+
 // ------------ Render API Choice ------------
 enum class RenderAPI {
     OpenGL,
@@ -152,8 +154,8 @@ public:
     virtual void SubmitRenderCommand(const RenderCommand& cmd) = 0;
     virtual void EndFrame() = 0;
 
-    // TODO: Consider GUI render function handler (for imgui...)
-    // virtual void RenderImGui() {} ???
+    // imgui Context
+    [[nodiscard]] virtual ImGuiContext* GetImGuiContext() const = 0;
 
     // Resource Factory Methods
     virtual uint64_t CreateMesh(const MeshDescriptor& desc) = 0;

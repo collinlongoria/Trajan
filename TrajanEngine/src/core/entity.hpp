@@ -13,6 +13,8 @@
 #ifndef ENTITY_HPP
 #define ENTITY_HPP
 
+#include <cstdint>
+
 // Entity Exists as Pure ID
 using Entity = uint32_t;
 

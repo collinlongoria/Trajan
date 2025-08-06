@@ -53,6 +53,7 @@ public:
     template<typename T>
     void RegisterComponent() {
         componentManager->RegisterComponent<T>();
+        Log::Message("Component type registered: " + std::string(typeid(T).name()));
     }
 
     template<typename T>
@@ -101,6 +102,34 @@ public:
     template<typename T>
     void SetSystemSignature(Signature signature) {
         systemManager->SetSignature<T>(signature);
+    }
+
+    void InitializeSystems(const SystemContext& ctx) {
+        systemManager->InitializeSystems( ctx );
+    }
+
+    void UpdateSystems(float dt) {
+        systemManager->UpdateSystems( dt );
+    }
+
+    void ShutdownSystems() {
+        systemManager->ShutdownSystems();
+    }
+
+    // Helper function for registering systems
+    template <typename SystemType, typename... ComponentTypes>
+    void CreateSystem() {
+        // Register the system to the orchestrator
+        auto system = RegisterSystem<SystemType>();
+
+        // Create signature
+        Signature signature;
+        (signature.set(GetComponentType<ComponentTypes>()), ...);
+
+        // Set the signature in the system
+        SetSystemSignature<SystemType>(signature);
+
+        Log::Message("Registered system: " + std::string(typeid(SystemType).name()));
     }
 
 private:

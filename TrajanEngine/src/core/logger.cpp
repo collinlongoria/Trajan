@@ -15,13 +15,13 @@
 #include <iostream>
 
 // Helper function to output to file/console
-void Logger::Output(const std::string& str) {
+void Logger::Output(const std::string& color_str, const std::string& str) {
     // TODO: Change this to handle turning off console when not in debug
-    std::cout << str << "\n";
+    std::cout << color_str << str << "\n";
 
     // Write to log file
     if(file.is_open()) {
-        file << str << "\033[0;37m\n";
+        file << str << "\n";
     }
 }
 
@@ -55,7 +55,7 @@ void Logger::Message(const std::string &message) {
     std::string color_str = "\033[0;37m";
     std::string log_str = "[TRAJAN][" + timestamp_str + "][MESSAGE] " + message;
 
-    Output(color_str + log_str);
+    Output(color_str, log_str);
 }
 
 void Logger::Warn(const std::string &message) {
@@ -68,7 +68,7 @@ void Logger::Warn(const std::string &message) {
     std::string color_str = "\033[0;33m";
     std::string log_str = "[TRAJAN][" + timestamp_str + "][WARNING] " + message;
 
-    Output(color_str + log_str);
+    Output(color_str, log_str);
 }
 
 void Logger::Error(const std::string &message) {
@@ -88,7 +88,7 @@ void Logger::Error(const std::string &message) {
 
     // Write to log file
     if(file.is_open()) {
-        file << color_str << log_str << "\033[0;37m\n";
+        file << log_str << "\n";
     }
 }
 
@@ -104,7 +104,7 @@ void Logger::Assert(bool condition, const std::string &message) {
         std::string color_str = "\033[41;30m";
         std::string log_str = "[TRAJAN][" + timestamp_str + "][ASSERT ] " + message;
 
-        Output(color_str + log_str);
+        Output(color_str, log_str);
 
         // TODO: add engine force shutdown
     }

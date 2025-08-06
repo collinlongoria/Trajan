@@ -30,6 +30,8 @@ target_include_directories(TrajanEngine
         PRIVATE
             ${Vulkan_INCLUDE_DIR}
             ${CMAKE_SOURCE_DIR}/external/glfw/include
+            ${CMAKE_SOURCE_DIR}/external/imgui
+            ${CMAKE_SOURCE_DIR}/external/imgui/backends
 )
 
 # External Libraries
@@ -44,6 +46,24 @@ add_library(glad STATIC
 )
 target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/external/glad/include)
 
+## imgui <- Static Library
+add_library(imgui STATIC
+        ${CMAKE_SOURCE_DIR}/external/imgui/imgui.cpp
+        ${CMAKE_SOURCE_DIR}/external/imgui/imgui_demo.cpp
+        ${CMAKE_SOURCE_DIR}/external/imgui/imgui_draw.cpp
+        ${CMAKE_SOURCE_DIR}/external/imgui/imgui_tables.cpp
+        ${CMAKE_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
+
+        ${CMAKE_SOURCE_DIR}/external/imgui/backends/imgui_impl_glfw.cpp
+        ${CMAKE_SOURCE_DIR}/external/imgui/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(imgui PUBLIC
+        ${CMAKE_SOURCE_DIR}/external/imgui
+        ${CMAKE_SOURCE_DIR}/external/imgui/backends
+        ${CMAKE_SOURCE_DIR}/external/glfw/include
+)
+target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
+
 # Link Libraries
 target_link_libraries(TrajanEngine
     PRIVATE
@@ -55,4 +75,5 @@ target_link_libraries(TrajanEngine
         Vulkan::Vulkan
         OpenGL::GL
         glm
+        imgui
 )

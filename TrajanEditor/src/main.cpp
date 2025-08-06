@@ -3,6 +3,16 @@
 #include <ostream>
 
 #include <trajan_engine.hpp>
+#include <imgui.h>
+#include <uuid.hpp>
+#include <sprite.hpp>
+#include <transform_2d.hpp>
+#include <orchestrator.hpp>
+#include <engine.hpp>
+#include <asset_system.hpp>
+#include <i_renderer.hpp>
+
+#include "mesh_manager.hpp"
 
 // UNIT TEST: Hello Triangle Data
 static const float vertices[] = {
@@ -61,8 +71,15 @@ int main(void) {
 
     engine->Initialize(800, 600, "Trajan Editor", RenderAPI::OpenGL);
 
-    auto renderer = static_cast<OpenGLRenderer*>(engine->GetRenderer());
+    auto renderer = engine->GetRenderer();
+    auto ecs = engine->GetOrchestrator();
+    auto assets = engine->GetAssetSystem();
 
+    auto& meshMgr = assets->Get<MeshManager>();
+
+    ImGui::SetCurrentContext(renderer->GetImGuiContext());
+
+    /*
     MeshDescriptor meshDesc = {
         .vertexData = vertices,
         .vertexSize = sizeof(vertices),
@@ -80,6 +97,19 @@ int main(void) {
     });
 
     uint64_t meshHandle = renderer->CreateMesh(meshDesc);
+    */
+    // Create Entity
+    Entity joe = ecs->CreateEntity();
+
+    ecs->AddComponent(joe, Transform2D({
+        .position = Vector2(400.0, 300.0),
+        .rotation = 0.0f,
+        .scale = Vector2(40.0f, 40.0f),
+    }));
+
+    // Create a simple quad using sprite
+    Sprite s;
+    s.mesh = meshMgr.loadQuad().operator->();
 
     ShaderDescriptor shaderDesc = {
         .vertexSource = vertexShaderSource,
@@ -87,8 +117,16 @@ int main(void) {
     };
     uint64_t shaderHandle = renderer->CreateShader(shaderDesc);
 
-    Mesh triangleMesh { .vertexCount = 3, .indexCount = 3, .rendererHandle = meshHandle };
-    Shader triangleShader { .rendererHandle = shaderHandle };
+    //Mesh triangleMesh { .vertexCount = 3, .indexCount = 3, .rendererHandle = meshHandle };
+    Shader shader { .rendererHandle = shaderHandle };
+
+    s.shader = &shader;
+
+    ecs->AddComponent(joe, s);
+
+    // UUID test
+    UUID id = UUID::generate();
+    Log::Message(id.toString());
 
     float angle = 0.0f;
 
@@ -98,26 +136,27 @@ int main(void) {
 
         FrameData fd;
         fd.view = Matrix4(1.0f);
-        fd.proj = Matrix4(1.0f);
+        fd.proj = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f, -1.0f, 1.0f);
         fd.cameraPos = Vector3(0.0f, 0.0f, 0.0f);
-        renderer->SetFrameData(fd);
+        renderer->SetFrameData(fd); // Frame data can be set at any time
 
-        renderer->BeginFrame();
-
+        // Rotating Entity
         angle += dt;
-        Matrix4 model = Matrix4(1.0f);
-        model = glm::rotate(model, angle, Vector3(0.0f, 1.0f, 0.0f));
+        auto& t = ecs->GetComponent<Transform2D>(joe);
+        t.rotation = angle;
 
-        RenderCommand cmd;
-        cmd.type = RenderCommand::Type::Mesh;
-        cmd.mesh = &triangleMesh;
-        cmd.shader = &triangleShader;
-        cmd.transform = model;
-
-        renderer->SubmitRenderCommand(cmd);
-        renderer->EndFrame();
+        // MUST begin frame before sending any render commands or drawing GUI
+        engine->BeginFrame();
 
         engine->Update(dt);
+
+        // Test: imgui
+        ImGui::Begin("Test");
+        ImGui::Text("Hello World!");
+        ImGui::End();
+
+        // Must end frame after any GUI or application draws
+        engine->EndFrame();
 
         auto stop = std::chrono::high_resolution_clock::now();
 

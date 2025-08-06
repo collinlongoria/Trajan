@@ -16,6 +16,11 @@
 #include <opengl_renderer.hpp>
 
 #include "orchestrator.hpp"
+#include "render_system.hpp"
+#include "sprite.hpp"
+#include "transform_2d.hpp"
+
+#include "mesh_manager.hpp"
 
 namespace Trajan {
 
@@ -25,21 +30,6 @@ namespace Trajan {
     }
 
     // Engine member functions
-
-    void Engine::Update(float dt) {
-        if(mWindow) mWindow->PollEvents();
-        //if(mRenderer) mRenderer->Render(dt);
-    }
-
-    void Engine::Shutdown() {
-        Log::Message("Shutting down engine...");
-
-        // Terminate renderer
-        if(mRenderer) mRenderer->Cleanup();
-        mWindow.reset(); // <-- may work without this?
-
-        Log::Message("Engine shutdown complete!");
-    }
 
     void Engine::Initialize(int width, int height, const std::string& name, RenderAPI api) {
         mActiveAPI = api;
@@ -63,22 +53,76 @@ namespace Trajan {
         switch( api ) {
             case RenderAPI::OpenGL:
                 Log::Message( "Initializing OpenGL Renderer..." );
-                mRenderer = std::make_shared<OpenGLRenderer>();
-                break;
+            mRenderer = std::make_shared<OpenGLRenderer>();
+            break;
             default:
                 Log::Error("Unsupported render API requested");
-                return;
+            return;
         }
 
         Log::Message( "Initialized renderer..." );
         mRenderer->Initialize(info);
 
+        Log::Message("Initializing Asset System");
+        mAssetSystem = std::make_shared<AssetSystem>();
+
+        Log::Message("Initializing Mesh Manager..." );
+        auto& meshMgr = mAssetSystem->EmplaceManager<MeshManager>(*mRenderer);
+
         Log::Message( "Initializing ECS Orchestrator..." );
         mOrchestrator = std::make_shared<Orchestrator>();
         mOrchestrator->Initialize();
 
+        Log::Message("Registering components and systems...");
+        mOrchestrator->RegisterComponent<Transform2D>();
+        mOrchestrator->RegisterComponent<Sprite>();
+
+        mOrchestrator->CreateSystem<RenderSystem, Sprite, Transform2D>();
+
+        // Build init context and init systems
+        SystemContext ctx{
+            .orchestrator = *mOrchestrator,
+            .renderer = *mRenderer,
+            .window = *mWindow
+        };
+        mOrchestrator->InitializeSystems(ctx);
+
         Log::Message( "Engine initialized!" );
     }
+
+    void Engine::BeginFrame() {
+        mRenderer->BeginFrame();
+    }
+
+    void Engine::Update(float dt) {
+        if(mWindow) mWindow->PollEvents();
+
+        // Update all systems
+        mOrchestrator->UpdateSystems(dt);
+    }
+
+    void Engine::EndFrame() {
+        mAssetSystem->CollectGarbage();
+        mRenderer->EndFrame();
+    }
+
+    void Engine::Shutdown() {
+        Log::Message("Shutting down engine...");
+
+        // Cleanup all Systems
+        mOrchestrator->ShutdownSystems();
+
+        // Cleanup all assets
+        mAssetSystem->UnloadAssets();
+
+        // Terminate renderer
+        if(mRenderer) mRenderer->Cleanup();
+        mWindow.reset(); // <-- may work without this?
+
+        Log::Message("Engine shutdown complete!");
+    }
+
+
 
     bool Engine::ShouldShutdown() const {
         return bShouldClose || (mWindow ? mWindow->ShouldClose() : true);
