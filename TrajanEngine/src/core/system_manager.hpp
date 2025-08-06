@@ -14,6 +14,7 @@
 #define SYSTEM_MANAGER_HPP
 #include <memory>
 #include <unordered_map>
+#include <typeindex>
 
 #include "component.hpp"
 #include "log.hpp"
@@ -23,30 +24,49 @@ class SystemManager {
 public:
     template<typename T>
     std::shared_ptr<T> RegisterSystem() {
-        const char* type = typeid(T).name();
+        auto key = std::type_index(typeid(T));
 
-        if( systems.contains( type ) ) {
-            Log::Error("Tried to register system type " + std::string(type) + " more than once!");
+        if( systems.contains( key ) ) {
+            Log::Error("Tried to register system type " + std::string(typeid(T).name()) + " more than once!");
             return nullptr;
         }
 
         // Create and return pointer to the system
         auto system = std::make_shared<T>();
-        systems.insert( { type, system } );
+        systems.emplace( key, system );
+        order.emplace_back( system );
         return system;
     }
 
     template<typename T>
     void SetSignature(Signature signature) {
-        const char* type = typeid(T).name();
+        auto key = std::type_index(typeid(T));
 
-        if( !systems.contains( type ) ) {
-            Log::Error("System type " + std::string(type) + " not registered!");
+        if( !systems.contains( key ) ) {
+            Log::Error("System type " + std::string(typeid(T).name()) + " not registered!");
             return;
         }
 
         // Set signature for the system
-        signatures.insert( { type, signature } );
+        signatures[key] = signature;
+    }
+
+    void InitializeSystems(const SystemContext& ctx) {
+        for(auto& sys : order) {
+            sys->Initialize(ctx);
+        }
+    }
+
+    void UpdateSystems(float dt) {
+        for(auto& sys : order) {
+            sys->Update(dt);
+        }
+    }
+
+    void ShutdownSystems() {
+        for(auto& sys : order) {
+            sys->Shutdown();
+        }
     }
 
     void EntityDestroyed(Entity entity) {
@@ -61,15 +81,18 @@ public:
     void EntitySignatureChanged(Entity entity, Signature signature) {
         // Notify each system of signature change
         for( auto const& pair : systems ) {
-            auto const& type = pair.first;
+            auto const& key   = pair.first;
             auto const& system = pair.second;
-            auto const& system_sig = signatures.at( type );
 
-            // Entity signature matches system -> insert into system's set
-            if( ( signature & system_sig ) == system_sig ) {
+            auto it = signatures.find( key );
+            if(it == signatures.end() ) {
+                // No signature for this system yet, skip
+                continue;
+            }
+            const auto& system_sig = it->second;
+            if( (signature & system_sig) == system_sig ) {
                 system->entities.insert( entity );
             }
-            // Entity does not match -> erase from the set
             else {
                 system->entities.erase( entity );
             }
@@ -78,10 +101,14 @@ public:
 
 private:
     // Map: System Type (C String) -> Signature
-    std::unordered_map<const char*, Signature> signatures{};
+    std::unordered_map<std::type_index, Signature> signatures{};
 
     // Map: System Type (C String) -> System Ptr
-    std::unordered_map<const char*, std::shared_ptr<System>> systems{};
+    std::unordered_map<std::type_index, std::shared_ptr<System>> systems{};
+
+    // List of existing systems for in-order iteration
+    // TODO: Refactor this to include order
+    std::vector<std::shared_ptr<System>> order;
 };
 
 #endif //SYSTEMMANAGER_HPP

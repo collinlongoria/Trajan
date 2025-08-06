@@ -15,6 +15,5 @@ target_link_libraries(TrajanEditor PRIVATE TrajanEngine)
 target_include_directories(TrajanEditor PRIVATE ${CMAKE_SOURCE_DIR}/external/glad/include)
 target_link_libraries(TrajanEditor PRIVATE glad)
 
-
 # TODO: copy only wanted headers into build
 target_include_directories(TrajanEditor PRIVATE ${CMAKE_SOURCE_DIR}/TrajanEngine/src)

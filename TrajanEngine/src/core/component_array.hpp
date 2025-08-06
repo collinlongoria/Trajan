@@ -16,8 +16,6 @@
 #include <array>
 #include <unordered_map>
 
-#include "trajan_engine.hpp"
-
 #include "entity.hpp"
 #include "log.hpp"
 
@@ -45,6 +43,8 @@ public:
     }
 
     void RemoveData(Entity entity) {
+        if( size == 0 ) { return; }
+
         if( !entityToIndexMap.contains( entity ) ) {
             Log::Warn("Tried to remove " + std::string(typeid(T).name()) + " from non-owning entity of ID " + std::to_string(entity) );
             return;
@@ -66,6 +66,16 @@ public:
         size--;
     }
 
+    T* GetData(Entity entity) {
+        auto it = entityToIndexMap.find(entity);
+        if(it == entityToIndexMap.end()) {
+            Log::Error("Entity does not have component"); // TODO: make error better
+            return nullptr;
+        }
+
+        return &componentArray[it->second];
+    }
+
     void EntityDestroyed(Entity entity) override {
         // This check seems redundant
         if( entityToIndexMap.contains( entity ) ) {
@@ -76,8 +86,8 @@ public:
 private:
     std::array<T, MAX_ENTITIES> componentArray;
     std::unordered_map<Entity, size_t> entityToIndexMap;
-    std::unordered_map<Entity, size_t> indexToEntityMap;
-    size_t size;
+    std::unordered_map<size_t, Entity> indexToEntityMap;
+    size_t size = 0;
 };
 
 #endif //COMPONENT_ARRAY_HPP

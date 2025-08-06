@@ -13,7 +13,13 @@
 #ifndef LOG_HPP
 #define LOG_HPP
 
-#include "trajan_engine.hpp"
+#include <memory>
+#include <string>
+#include <i_logger.hpp>
+
+namespace Trajan {
+    std::shared_ptr<ILogger> GetLogger(); // fwd declare the function
+}
 
 namespace Log {
     inline void Message(const std::string& message) {

@@ -43,8 +43,4 @@ namespace Trajan {
 #pragma warning(disable:4251)
 #endif
 
-#include "engine.hpp"
-#include "log.hpp"
-#include "i_renderer.hpp"
-#include "opengl_renderer.hpp"
 #endif //TRAJAN_ENGINE_HPP

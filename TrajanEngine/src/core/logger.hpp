@@ -64,7 +64,7 @@ private:
      *  Out:
      *      none
      */
-    void Output(const std::string& str);
+    void Output(const std::string& color_str, const std::string& str);
 
     // Output file stream
     std::ofstream file;

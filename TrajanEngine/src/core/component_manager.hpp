@@ -13,6 +13,7 @@
 #ifndef COMPONENT_MANAGER_HPP
 #define COMPONENT_MANAGER_HPP
 #include <unordered_map>
+#include <typeindex>
 
 #include "component.hpp"
 #include "component_array.hpp"
@@ -21,18 +22,18 @@ class ComponentManager {
 public:
     template<typename T>
     void RegisterComponent() {
-        const char* typeName = typeid(T).name();
+        auto key = std::type_index(typeid(T));
 
-        if( componentTypes.contains(typeName) ) {
+        if( componentTypes.contains(key) ) {
             Log::Error("Attempted register of component type " + std::string(typeid(T).name()) + " more than once!");
             return;
         }
 
         // Add the type to the map
-        componentTypes.insert( { typeName, nextComponentType } );
+        componentTypes.insert( { key, nextComponentType } );
 
         // Create a component array ptr and add it to the map
-        componentArrays.insert( { typeName, std::make_shared<ComponentArray<T>>() } );
+        componentArrays.insert( { key, std::make_shared<ComponentArray<T>>() } );
 
         // Increment to the next available register
         ++nextComponentType;
@@ -40,15 +41,12 @@ public:
 
     template<typename T>
     ComponentType GetComponentType() {
-        const char* typeName = typeid(T).name();
-
-        if( !componentTypes.contains(typeName) ) {
-            Log::Error("Component type " + std::string(typeid(T).name()) + " not registered before use!");
-            return -1; // TODO: make this all use std::optional
+        auto key = std::type_index(typeid(T));
+        auto it = componentTypes.find( key );
+        if(it == componentTypes.end()) {
+            Log::Assert(false, "Component type not registered"); // TODO: replace when i add throws
         }
-
-        // Return component type
-        return componentTypes[typeName];
+        return it->second;
     }
 
     template<typename T>
@@ -66,7 +64,11 @@ public:
     template<typename T>
     T& GetComponent(Entity entity) {
         // Return a reference to a component from the array for an entity
-        return GetComponentArray<T>()->GetData(entity);
+        auto arr = GetComponentArray<T>();
+        Log::Assert(arr != nullptr, "Component array does not exist");
+        T* ptr = arr->GetData(entity);
+        Log::Assert(ptr != nullptr, "Component not found on entity");
+        return *ptr;
     }
 
     void EntityDestroyed(Entity entity) {
@@ -79,10 +81,10 @@ public:
 
 private:
     // Map from Component Name (C String) to Component Type (uint8_t)
-    std::unordered_map<const char*, ComponentType> componentTypes {};
+    std::unordered_map<std::type_index, ComponentType> componentTypes {};
 
     // Map from Component Name (C String) to Component Array
-    std::unordered_map<const char*, std::shared_ptr<IComponentArray>> componentArrays {};
+    std::unordered_map<std::type_index, std::shared_ptr<IComponentArray>> componentArrays {};
 
     // Component Types to be assigned to the next registered component (Starts at 0)
     ComponentType nextComponentType{};
@@ -90,14 +92,13 @@ private:
     // Helper: Retrieve statically cast pointer to the ComponentArray of type T
     template<typename T>
     std::shared_ptr<ComponentArray<T>> GetComponentArray() {
-        const char* typeName = typeid(T).name();
-
-        if( componentArrays.find(typeName) == componentArrays.end() ) {
-            Log::Error("Component of type: " + std::string(typeid(T).name()) + " requested, but not registered!");
+        auto key = std::type_index(typeid(T));
+        auto it = componentArrays.find( key );
+        if(it == componentArrays.end()) {
+            Log::Error("Component of type: " + std::string(typeid(T).name()) + " requested, but not registered.");
             return nullptr;
         }
-
-        return std::static_pointer_cast<ComponentArray<T>>(componentArrays[typeName]);
+        return std::static_pointer_cast<ComponentArray<T>>(it->second);
     }
 };
 

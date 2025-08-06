@@ -15,6 +15,9 @@
 
 #include <trajan_engine.hpp>
 #include "i_renderer.hpp"
+#include "asset_system.hpp"
+
+class System;
 
 class Window;
 class IRenderer;
@@ -28,19 +31,26 @@ namespace Trajan {
 
         void Initialize(int width, int height, const std::string& name, RenderAPI api);
 
+        // Main Loop
+        void BeginFrame();
         void Update(float dt);
+        void EndFrame();
+
         void Shutdown();
 
         void RequestShutdown() { bShouldClose = true; };
         [[nodiscard]] bool ShouldShutdown() const;
 
         [[nodiscard]] IRenderer* GetRenderer() const { return mRenderer.get(); }
+        [[nodiscard]] Orchestrator* GetOrchestrator() const { return mOrchestrator.get(); }
+        [[nodiscard]] AssetSystem* GetAssetSystem() const { return mAssetSystem.get(); }
 
     private:
         bool bShouldClose = false;
 
         RenderAPI mActiveAPI = RenderAPI::OpenGL; // Default to OpenGL
 
+        std::shared_ptr<AssetSystem> mAssetSystem;
         std::shared_ptr<Orchestrator> mOrchestrator;
         std::shared_ptr<IRenderer> mRenderer;
         std::shared_ptr<Window> mWindow;

@@ -13,8 +13,15 @@
 #include "opengl_renderer.hpp"
 #include <GLFW/glfw3.h>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include "log.hpp"
 #include "texture.hpp"
+
+// Imgui Requirement
+static const char* IMGUI_GL_VERSION = "#version 460";
 
 // Fixed binding points for frame data
 static constexpr GLuint CAMERA_BINDING = 0;
@@ -102,6 +109,17 @@ void OpenGLRenderer::Initialize(const RendererInitInfo &initInfo) {
     glViewport(0, 0, initInfo.width, initInfo.height);
     glEnable(GL_DEPTH_TEST);
 
+    // Imgui stuff
+    // TODO: refine enabling, seperate this to own function
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(window), true);
+    ImGui_ImplOpenGL3_Init(IMGUI_GL_VERSION);
+
     // Create frame data UBO
     glGenBuffers(1, &cameraUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
@@ -121,6 +139,11 @@ void OpenGLRenderer::SetFrameData(const FrameData &fd) {
 }
 
 void OpenGLRenderer::BeginFrame() {
+    // Create new imgui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     commandQueue.clear();
@@ -150,6 +173,11 @@ void OpenGLRenderer::EndFrame() {
     for(const auto& cmd : commandQueue) {
         ExecuteCommand(cmd);
     }
+
+    // Render imgui
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
     glfwSwapBuffers(static_cast<GLFWwindow *>(window));
 }
@@ -514,4 +542,17 @@ void OpenGLRenderer::ApplyUniformAssignments(const GLShader &sh, const std::vect
             glUniformMatrix4fv( loc, 1, GL_FALSE, &m[0][0] );
         }
     }
+}
+
+void OpenGLRenderer::Cleanup() {
+    // Have to define this function to disable imgui, oh well.
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    // TODO: need to destroy openGL resources that are still alive (or do I???)
+}
+
+ImGuiContext *OpenGLRenderer::GetImGuiContext() const {
+    return ImGui::GetCurrentContext();
 }
