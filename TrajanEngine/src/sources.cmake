@@ -36,6 +36,7 @@ set(ENGINE_SOURCES
         src/core/i_asset_manager.hpp
         src/core/asset_system.hpp
         src/core/mesh_manager.hpp
+        src/core/shader_manager.hpp
 
         # COMPONENTS
         src/components/sprite.hpp

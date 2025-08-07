@@ -31,8 +31,8 @@ void RenderSystem::Update(float dt) {
         // Submit renderable to renderer
         RenderCommand cmd;
         cmd.type = RenderCommand::Type::Mesh;
-        cmd.mesh = sprite.mesh;
-        cmd.shader = sprite.shader;
+        cmd.mesh = sprite.mesh.operator->();
+        cmd.shader = sprite.shader.operator->();
         cmd.transform = transform.Matrix();
 
         mRenderer->SubmitRenderCommand(cmd);

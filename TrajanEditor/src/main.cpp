@@ -13,6 +13,8 @@
 #include <i_renderer.hpp>
 
 #include "mesh_manager.hpp"
+#include "shader.hpp"
+#include "shader_manager.hpp"
 
 // UNIT TEST: Hello Triangle Data
 static const float vertices[] = {
@@ -76,6 +78,7 @@ int main(void) {
     auto assets = engine->GetAssetSystem();
 
     auto& meshMgr = assets->Get<MeshManager>();
+    auto& shaderMgr = assets->Get<ShaderManager>();
 
     ImGui::SetCurrentContext(renderer->GetImGuiContext());
 
@@ -109,18 +112,13 @@ int main(void) {
 
     // Create a simple quad using sprite
     Sprite s;
-    s.mesh = meshMgr.loadQuad().operator->();
+    s.mesh = meshMgr.loadQuad();
 
     ShaderDescriptor shaderDesc = {
         .vertexSource = vertexShaderSource,
         .fragmentSource = fragmentShaderSource
     };
-    uint64_t shaderHandle = renderer->CreateShader(shaderDesc);
-
-    //Mesh triangleMesh { .vertexCount = 3, .indexCount = 3, .rendererHandle = meshHandle };
-    Shader shader { .rendererHandle = shaderHandle };
-
-    s.shader = &shader;
+    s.shader = shaderMgr.getOrCreate("flat", shaderDesc);
 
     ecs->AddComponent(joe, s);
 

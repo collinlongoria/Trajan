@@ -13,12 +13,16 @@
 #ifndef SPRITE_HPP
 #define SPRITE_HPP
 
-#include "mesh.hpp"
-#include "shader.hpp"
+//#include "mesh.hpp"
+//#include "shader.hpp"
+#include "asset_handle.hpp"
+
+class Mesh;
+class Shader;
 
 struct Sprite {
-    Mesh* mesh = nullptr;
-    Shader* shader = nullptr;
+    AssetHandle<Mesh> mesh;
+    AssetHandle<Shader> shader;
 };
 
 #endif //SPRITE_HPP

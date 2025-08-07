@@ -21,6 +21,7 @@
 #include "transform_2d.hpp"
 
 #include "mesh_manager.hpp"
+#include "shader_manager.hpp"
 
 namespace Trajan {
 
@@ -68,6 +69,9 @@ namespace Trajan {
 
         Log::Message("Initializing Mesh Manager..." );
         auto& meshMgr = mAssetSystem->EmplaceManager<MeshManager>(*mRenderer);
+
+        Log::Message("Initializing Shader Manager...");
+        auto& shaderMgr = mAssetSystem->EmplaceManager<ShaderManager>(*mRenderer);
 
         Log::Message( "Initializing ECS Orchestrator..." );
         mOrchestrator = std::make_shared<Orchestrator>();

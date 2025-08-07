@@ -57,23 +57,38 @@ public:
         }
 
         ++ent.refs;
-        return { quadID, ent.cpu_mesh.get() };
+        return Handle{ quadID, ent.cpu_mesh.get(), this, false };
     }
 
     // Asset Manager Overrides
-    Handle loadFromGUID(UUID id) override { return { id, cache[id].cpu_mesh.get() }; }
-    Handle loadFromFile(const std::string &virtualPath) override { return {}; } // TODO
+    Handle loadFromGUID(UUID id) override {
+        auto it = cache.find(id);
+        if(it == cache.end() || !it->second.cpu_mesh) return {};
+        ++it->second.refs;
+        return Handle{ id, it->second.cpu_mesh.get(), this, false };
+    }
+
+    Handle loadFromFile(const std::string &virtualPath) override {
+        (void)virtualPath; // TODO: implement file loading meshes
+        return {};
+    }
+
+    void addRef(UUID id) override {
+        auto it = cache.find(id);
+        if(it != cache.end()) ++it->second.refs;
+    }
 
     void release(UUID id) override {
-        if(auto it = cache.find( id ); it != cache.end()) {
-            --it->second.refs;
-        }
+        auto it = cache.find(id);
+        if(it != cache.end()) --it->second.refs;
     }
 
     void CollectGarbage() override {
         for(auto it = cache.begin(); it != cache.end(); ) {
-            if(it->second.refs == 0) {
-                renderer.DestroyMesh(it->second.cpu_mesh->rendererHandle);
+            if(it->second.refs <= 0) {
+                if(it->second.cpu_mesh && it->second.cpu_mesh->rendererHandle) {
+                    renderer.DestroyMesh(it->second.cpu_mesh->rendererHandle);
+                }
                 it = cache.erase(it);
             }
             else {

@@ -34,6 +34,9 @@ public:
 
     virtual Handle loadFromGUID(UUID id) = 0;
     virtual Handle loadFromFile(const std::string& virtualPath) = 0;
+
+    // Refcount used by AssetHandle
+    virtual void addRef(UUID id) = 0;
     virtual void release(UUID id) = 0;
 };
 
